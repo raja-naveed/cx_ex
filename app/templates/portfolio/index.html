@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="portfolio-summary {{ 'negative' if total_equity < 10000 else '' }}">
+            <div class="row">
+                <div class="col-md-3">
+                    <h6>Total Equity</h6>
+                    <h3>${{ "{:,.2f}".format(total_equity) }}</h3>
+                </div>
+                <div class="col-md-3">
+                    <h6>Cash Balance</h6>
+                    <h3>${{ "{:,.2f}".format(cash_balance) }}</h3>
+                </div>
+                <div class="col-md-3">
+                    <h6>Market Value</h6>
+                    <h3>${{ "{:,.2f}".format(total_equity - cash_balance) }}</h3>
+                </div>
+                <div class="col-md-3">
+                    <h6>Day P&L</h6>
+                    {% set day_pnl = total_equity - 10000 %}
+                    <h3 class="{{ 'text-success' if day_pnl >= 0 else 'text-danger' }}">
+                        {% if day_pnl >= 0 %}
+                            +${{ "{:,.2f}".format(day_pnl) }}
+                        {% else %}
+                            -${{ "{:,.2f}".format(-day_pnl) }}
+                        {% endif %}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Current Positions</h5>
+            </div>
+            <div class="card-body">
+                {% if positions %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Quantity</th>
+                                <th>Avg Cost</th>
+                                <th>Market Price</th>
+                                <th>Market Value</th>
+                                <th>Unrealized P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for position in positions %}
+                            <tr>
+                                <td>
+                                    <strong>{{ position.stock.ticker }}</strong><br>
+                                    <small class="text-muted">{{ position.stock.company }}</small>
+                                </td>
+                                <td>{{ "{:,}".format(position.quantity) }}</td>
+                                <td>${{ "%.2f"|format(position.avg_cost) }}</td>
+                                <td data-stock-id="{{ position.stock.id }}">
+                                    {% if position.stock.prices_live %}
+                                        ${{ "%.2f"|format(position.stock.prices_live.last_price) }}
+                                    {% else %}
+                                        ${{ "%.2f"|format(position.stock.initial_price) }}
+                                    {% endif %}
+                                </td>
+                                <td>${{ "{:,.2f}".format(position.get_market_value()) }}</td>
+                                <td>
+                                    {% set pnl = position.get_unrealized_pnl() %}
+                                    <span class="{{ 'text-success' if pnl >= 0 else 'text-danger' }}">
+                                        {% if pnl >= 0 %}
+                                            +${{ "{:,.2f}".format(pnl) }}
+                                        {% else %}
+                                            -${{ "{:,.2f}".format(-pnl) }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <h6 class="text-muted">No positions</h6>
+                    <p>Start trading to build your portfolio.</p>
+                    <a href="{{ url_for('market.stocks') }}" class="btn btn-primary">Browse Stocks</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">Place Order</a>
+                    <a href="{{ url_for('trading.orders') }}" class="btn btn-outline-primary">View Orders</a>
+                    <a href="{{ url_for('cash.index') }}" class="btn btn-outline-secondary">Manage Cash</a>
+                    <a href="{{ url_for('portfolio.history') }}" class="btn btn-outline-info">Trade History</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Trades</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_trades %}
+                    {% for trade in recent_trades %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <strong>{{ trade.stock.ticker }}</strong>
+                            <span class="badge bg-{{ 'success' if trade.side.value == 'buy' else 'danger' }} ms-2">
+                                {{ trade.side.value.upper() }}
+                            </span>
+                            <br>
+                            <small class="text-muted">{{ trade.quantity }} @ ${{ "%.2f"|format(trade.price) }}</small>
+                        </div>
+                        <div class="text-end">
+                            <small class="text-muted">{{ trade.executed_at.strftime('%m/%d %H:%M') }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <a href="{{ url_for('portfolio.history') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                {% else %}
+                    <p class="text-muted mb-0">No recent trades</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

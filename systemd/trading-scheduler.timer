@@ -1,0 +1,11 @@
+[Unit]
+Description=Trading Simulator Market Schedule Timer
+Requires=trading-scheduler.service
+
+[Timer]
+OnCalendar=*-*-* *:00,30:00
+Persistent=true
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

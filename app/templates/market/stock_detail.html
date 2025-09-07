@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}{{ stock.ticker }} - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">{{ stock.ticker }} - {{ stock.company }}</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h2 class="text-primary" data-stock-id="{{ stock.id }}">
+                            {% if stock.prices_live %}
+                                ${{ "%.2f"|format(stock.prices_live.last_price) }}
+                            {% else %}
+                                ${{ "%.2f"|format(stock.initial_price) }}
+                            {% endif %}
+                        </h2>
+                        {% if stock.prices_live %}
+                            {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
+                            {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
+                            <p class="{% if change > 0 %}text-success{% elif change < 0 %}text-danger{% endif %} mb-0">
+                                {{ "+$%.2f"|format(change) if change >= 0 else "$%.2f"|format(change) }}
+                                ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
+                            </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}" class="btn btn-success me-2">Buy</a>
+                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}&side=sell" class="btn btn-danger">Sell</a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Open:</strong><br>
+                        {% if stock.prices_live %}
+                            ${{ "%.2f"|format(stock.prices_live.open_price) }}
+                        {% else %}
+                            ${{ "%.2f"|format(stock.initial_price) }}
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>High:</strong><br>
+                        {% if stock.prices_live %}
+                            ${{ "%.2f"|format(stock.prices_live.high_price) }}
+                        {% else %}
+                            ${{ "%.2f"|format(stock.initial_price) }}
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Low:</strong><br>
+                        {% if stock.prices_live %}
+                            ${{ "%.2f"|format(stock.prices_live.low_price) }}
+                        {% else %}
+                            ${{ "%.2f"|format(stock.initial_price) }}
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Volume:</strong><br>
+                        {{ "{:,}".format(stock.float_shares) }}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Market Cap:</strong><br>
+                        ${{ "{:,.0f}".format(stock.get_market_cap()) }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Shares Outstanding:</strong><br>
+                        {{ "{:,}".format(stock.float_shares) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Trade</h5>
+            </div>
+            <div class="card-body">
+                {% if current_user.is_authenticated %}
+                    <form method="POST" action="{{ url_for('trading.place_order') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="stock_id" value="{{ stock.id }}">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Side</label>
+                            <select name="side" class="form-select" required>
+                                <option value="buy">Buy</option>
+                                <option value="sell">Sell</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Quantity</label>
+                            <input type="number" name="quantity" class="form-control" min="1" max="10000" required>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Place Market Order</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p class="text-muted">Please <a href="{{ url_for('auth.login') }}">login</a> to trade.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary">← Back to Market</a>
+</div>
+{% endblock %}

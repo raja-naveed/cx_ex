@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Stocks - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Stock Management</h2>
+    <div>
+        <a href="{{ url_for('admin.create_stock') }}" class="btn btn-success me-2">Add Stock</a>
+        <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">← Admin Dashboard</a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Ticker</th>
+                <th>Company</th>
+                <th>Float Shares</th>
+                <th>Initial Price</th>
+                <th>Current Price</th>
+                <th>Market Cap</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+            <tr>
+                <td>{{ stock.id }}</td>
+                <td><strong>{{ stock.ticker }}</strong></td>
+                <td>{{ stock.company }}</td>
+                <td>{{ "{:,}".format(stock.float_shares) }}</td>
+                <td>${{ "%.4f"|format(stock.initial_price) }}</td>
+                <td>
+                    {% if stock.prices_live %}
+                        ${{ "%.4f"|format(stock.prices_live.last_price) }}
+                    {% else %}
+                        <span class="text-muted">No data</span>
+                    {% endif %}
+                </td>
+                <td>${{ "{:,.0f}".format(stock.get_market_cap()) }}</td>
+                <td>
+                    <span class="badge bg-{{ 'success' if stock.is_active else 'secondary' }}">
+                        {{ 'Active' if stock.is_active else 'Inactive' }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('admin.edit_stock', stock_id=stock.id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    <a href="{{ url_for('market.stock_detail', stock_id=stock.id) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not stocks %}
+<div class="text-center py-5">
+    <h4 class="text-muted">No stocks available</h4>
+    <p>Create your first stock to enable trading.</p>
+    <a href="{{ url_for('admin.create_stock') }}" class="btn btn-primary">Add Stock</a>
+</div>
+{% endif %}
+{% endblock %}

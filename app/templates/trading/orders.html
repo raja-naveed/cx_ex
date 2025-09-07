@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>My Orders</h2>
+    <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">Place New Order</a>
+</div>
+
+{% if orders %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Order ID</th>
+                <th>Stock</th>
+                <th>Side</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>#{{ order.id }}</td>
+                <td>
+                    <strong>{{ order.stock.ticker }}</strong><br>
+                    <small class="text-muted">{{ order.stock.company }}</small>
+                </td>
+                <td>
+                    <span class="badge bg-{{ 'success' if order.side.value == 'buy' else 'danger' }}">
+                        {{ order.side.value.upper() }}
+                    </span>
+                </td>
+                <td>{{ "{:,}".format(order.quantity) }}</td>
+                <td>
+                    <span class="badge order-status-{{ order.status.value }}">
+                        {{ order.status.value.upper() }}
+                    </span>
+                </td>
+                <td>
+                    {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+                </td>
+                <td>
+                    {% if order.status.value == 'queued' %}
+                        <form method="POST" action="{{ url_for('trading.cancel_order', order_id=order.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger cancel-order">Cancel</button>
+                        </form>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <h4 class="text-muted">No orders yet</h4>
+    <p>Place your first order to start trading.</p>
+    <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">Place Order</a>
+</div>
+{% endif %}
+{% endblock %}

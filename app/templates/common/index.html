@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">Trading Simulator</h1>
+            <p class="lead">Practice trading with virtual money in a realistic market environment.</p>
+            <hr class="my-4">
+            <p>This is a simulated trading platform for educational purposes only. No real money is involved.</p>
+            {% if not current_user.is_authenticated %}
+                <a class="btn btn-primary btn-lg me-2" href="{{ url_for('auth.register') }}" role="button">Get Started</a>
+                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('market.stocks') }}" role="button">View Market</a>
+            {% else %}
+                <a class="btn btn-primary btn-lg me-2" href="{{ url_for('market.stocks') }}" role="button">Start Trading</a>
+                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('portfolio.index') }}" role="button">View Portfolio</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Real-Time Prices</h5>
+                <p class="card-text">Experience live market simulation with prices that update every few seconds during market hours.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Portfolio Tracking</h5>
+                <p class="card-text">Monitor your positions, track P&L, and analyze your trading performance over time.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Market Orders</h5>
+                <p class="card-text">Place buy and sell orders that execute at current market prices when the market is open.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

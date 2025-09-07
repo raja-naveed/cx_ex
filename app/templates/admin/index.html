@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Admin Dashboard</h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Market State</h5>
+                <form method="POST" action="{{ url_for('admin.toggle_market') }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-{{ 'danger' if market_state.is_open else 'success' }}">
+                        {{ 'Close Market' if market_state.is_open else 'Open Market' }}
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <h4>
+                            <span class="badge bg-{{ 'success' if market_state.is_open else 'danger' }}">
+                                {{ 'OPEN' if market_state.is_open else 'CLOSED' }}
+                            </span>
+                            {% if market_state.emergency_close %}
+                                <span class="badge bg-warning text-dark">EMERGENCY</span>
+                            {% endif %}
+                        </h4>
+                        <p class="text-muted mb-0">
+                            Last updated: {{ market_state.last_updated.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <strong>Emergency Controls:</strong> Use the toggle button above to manually open or close the market outside normal hours.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">System Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h3>{{ stock_count }}</h3>
+                        <p class="text-muted mb-0">Active Stocks</p>
+                    </div>
+                    <div class="col-6">
+                        <h3>—</h3>
+                        <p class="text-muted mb-0">Queue Depth</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Stock Management</h5>
+            </div>
+            <div class="card-body">
+                <p>Create and manage tradeable stocks.</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.stocks') }}" class="btn btn-primary">View Stocks</a>
+                    <a href="{{ url_for('admin.create_stock') }}" class="btn btn-outline-primary">Add Stock</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Market Hours</h5>
+            </div>
+            <div class="card-body">
+                <p>Configure trading hours and holidays.</p>
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-primary disabled">Market Hours</a>
+                    <a href="#" class="btn btn-outline-primary disabled">Holiday Calendar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">System Status</h5>
+            </div>
+            <div class="card-body">
+                <p>Monitor system health and logs.</p>
+                <div class="d-grid gap-2">
+                    <a href="#" class="btn btn-primary disabled">Audit Logs</a>
+                    <a href="#" class="btn btn-outline-primary disabled">System Health</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

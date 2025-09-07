@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Trade History - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Trade History</h2>
+    <a href="{{ url_for('portfolio.index') }}" class="btn btn-secondary">← Back to Portfolio</a>
+</div>
+
+{% if trades %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Date</th>
+                <th>Stock</th>
+                <th>Side</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total Value</th>
+                <th>Order ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trade in trades %}
+            <tr>
+                <td>{{ trade.executed_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>
+                    <strong>{{ trade.stock.ticker }}</strong><br>
+                    <small class="text-muted">{{ trade.stock.company }}</small>
+                </td>
+                <td>
+                    <span class="badge bg-{{ 'success' if trade.side.value == 'buy' else 'danger' }}">
+                        {{ trade.side.value.upper() }}
+                    </span>
+                </td>
+                <td>{{ "{:,}".format(trade.quantity) }}</td>
+                <td>${{ "%.4f"|format(trade.price) }}</td>
+                <td>${{ "{:,.2f}".format(trade.total_value) }}</td>
+                <td><small class="text-muted">#{{ trade.order_id }}</small></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <h4 class="text-muted">No trades yet</h4>
+    <p>Your executed trades will appear here.</p>
+    <a href="{{ url_for('market.stocks') }}" class="btn btn-primary">Start Trading</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Place Order - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Place Market Order</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.stock_id.label(class="form-label") }}
+                        {{ form.stock_id(class="form-select") }}
+                        {% for error in form.stock_id.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.side.label(class="form-label") }}
+                        {{ form.side(class="form-select") }}
+                        {% for error in form.side.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.quantity.label(class="form-label") }}
+                        {{ form.quantity(class="form-control") }}
+                        <div class="form-text">Enter the number of shares you want to trade (1-10,000).</div>
+                        {% for error in form.quantity.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6>Order Details:</h6>
+                        <ul class="mb-0">
+                            <li>Order Type: <strong>Market Order</strong></li>
+                            <li>Execution: Immediate when market is open</li>
+                            <li>Price: Current market price at execution</li>
+                            <li>Status: Will be queued if market is closed</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('trading.orders') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Your Current Cash Balance</h5>
+            </div>
+            <div class="card-body">
+                <h4 class="text-success">${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</h4>
+                <a href="{{ url_for('cash.deposit') }}" class="btn btn-sm btn-outline-primary">Add Funds</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

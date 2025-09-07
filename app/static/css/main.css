@@ -1,0 +1,69 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.jumbotron {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.table-responsive {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.price-up {
+    color: #28a745;
+}
+
+.price-down {
+    color: #dc3545;
+}
+
+.market-open {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.market-closed {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.portfolio-summary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.portfolio-summary.negative {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+}
+
+.order-status-queued {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.order-status-executed {
+    background-color: #28a745;
+    color: white;
+}
+
+.order-status-canceled {
+    background-color: #6c757d;
+    color: white;
+}
+
+.order-status-rejected {
+    background-color: #dc3545;
+    color: white;
+}

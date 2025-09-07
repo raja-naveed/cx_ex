@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Edit Stock - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Edit Stock: {{ stock.ticker }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.ticker.label(class="form-label") }}
+                                {{ form.ticker(class="form-control") }}
+                                <div class="form-text">Stock symbol (e.g., AAPL, GOOGL)</div>
+                                {% for error in form.ticker.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="form-check">
+                                    {{ form.is_active(class="form-check-input") }}
+                                    {{ form.is_active.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.company.label(class="form-label") }}
+                        {{ form.company(class="form-control") }}
+                        <div class="form-text">Full company name</div>
+                        {% for error in form.company.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.float_shares.label(class="form-label") }}
+                                {{ form.float_shares(class="form-control") }}
+                                <div class="form-text">Number of shares available for trading</div>
+                                {% for error in form.float_shares.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.initial_price.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.initial_price(class="form-control") }}
+                                </div>
+                                <div class="form-text">Base price for simulation</div>
+                                {% for error in form.initial_price.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if stock.prices_live %}
+                    <div class="alert alert-info">
+                        <h6>Current Market Data:</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Last:</strong> ${{ "%.4f"|format(stock.prices_live.last_price) }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Open:</strong> ${{ "%.4f"|format(stock.prices_live.open_price) }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>High:</strong> ${{ "%.4f"|format(stock.prices_live.high_price) }}
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Low:</strong> ${{ "%.4f"|format(stock.prices_live.low_price) }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary", value="Update Stock") }}
+                        <a href="{{ url_for('admin.stocks') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Create Stock - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">Create New Stock</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.ticker.label(class="form-label") }}
+                                {{ form.ticker(class="form-control") }}
+                                <div class="form-text">Stock symbol (e.g., AAPL, GOOGL)</div>
+                                {% for error in form.ticker.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">&nbsp;</label>
+                                <div class="form-check">
+                                    {{ form.is_active(class="form-check-input") }}
+                                    {{ form.is_active.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.company.label(class="form-label") }}
+                        {{ form.company(class="form-control") }}
+                        <div class="form-text">Full company name</div>
+                        {% for error in form.company.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.float_shares.label(class="form-label") }}
+                                {{ form.float_shares(class="form-control") }}
+                                <div class="form-text">Number of shares available for trading</div>
+                                {% for error in form.float_shares.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                {{ form.initial_price.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.initial_price(class="form-control") }}
+                                </div>
+                                <div class="form-text">Starting price per share</div>
+                                {% for error in form.initial_price.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6>Stock Creation:</h6>
+                        <ul class="mb-0">
+                            <li>The ticker symbol must be unique</li>
+                            <li>Initial price will be used for OHLC data initialization</li>
+                            <li>Price simulation will begin once the stock is created</li>
+                            <li>Market cap = Float Shares × Current Price</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                        <a href="{{ url_for('admin.stocks') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

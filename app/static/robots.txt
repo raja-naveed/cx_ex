@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /trading/
+Disallow: /portfolio/
+Disallow: /cash/
+Allow: /
+Allow: /market/
+
+Sitemap: https://your-domain.com/sitemap.xml

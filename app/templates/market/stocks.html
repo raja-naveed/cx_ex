@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Stocks - Trading Simulator{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Market Overview</h2>
+    {% if current_user.is_authenticated %}
+        <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">Place Order</a>
+    {% endif %}
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Ticker</th>
+                <th>Company</th>
+                <th>Last Price</th>
+                <th>Change</th>
+                <th>Market Cap</th>
+                <th>Volume</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stock in stocks %}
+            <tr>
+                <td><strong>{{ stock.ticker }}</strong></td>
+                <td>{{ stock.company }}</td>
+                <td>
+                    <span data-stock-id="{{ stock.id }}">
+                        {% if stock.prices_live %}
+                            ${{ "%.2f"|format(stock.prices_live.last_price) }}
+                        {% else %}
+                            ${{ "%.2f"|format(stock.initial_price) }}
+                        {% endif %}
+                    </span>
+                </td>
+                <td>
+                    {% if stock.prices_live %}
+                        {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
+                        {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
+                        <span class="{% if change > 0 %}text-success{% elif change < 0 %}text-danger{% endif %}">
+                            {{ "+$%.2f"|format(change) if change >= 0 else "$%.2f"|format(change) }}
+                            ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
+                        </span>
+                    {% else %}
+                        <span class="text-muted">--</span>
+                    {% endif %}
+                </td>
+                <td>${{ "{:,.0f}".format(stock.get_market_cap()) }}</td>
+                <td>{{ "{:,}".format(stock.float_shares) }}</td>
+                <td>
+                    <a href="{{ url_for('market.stock_detail', stock_id=stock.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if not stocks %}
+<div class="text-center py-5">
+    <h4 class="text-muted">No stocks available</h4>
+    <p>Check back later or contact an administrator.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Real-time price updates
+    if (document.querySelector('[data-stock-id]')) {
+        setInterval(function() {
+            fetch('/market/prices')
+                .then(response => response.json())
+                .then(data => {
+                    document.querySelectorAll('[data-stock-id]').forEach(element => {
+                        const stockId = element.dataset.stockId;
+                        if (data[stockId]) {
+                            element.textContent = '$' + parseFloat(data[stockId].last_price).toFixed(2);
+                        }
+                    });
+                })
+                .catch(error => console.log('Price update failed:', error));
+        }, 5000);
+    }
+</script>
+{% endblock %}
