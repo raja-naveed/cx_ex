@@ -1,5 +1,5 @@
 [Unit]
-Description=Trading Simulator Market Schedule Service
+Description=ZEBRAT TRADING Market Schedule Service
 After=network.target postgresql.service redis.service
 Wants=network.target
 Requires=postgresql.service redis.service

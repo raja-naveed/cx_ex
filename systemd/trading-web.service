@@ -1,5 +1,5 @@
 [Unit]
-Description=Trading Simulator Web Application
+Description=ZEBRAT TRADING Web Application
 After=network.target postgresql.service redis.service
 Wants=network.target
 Requires=postgresql.service redis.service

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Trading Simulator Backup Script
+# ZEBRAT TRADING Backup Script
 
 APP_DIR="/opt/trading-sim"
 BACKUP_DIR="/opt/backups/trading-sim"

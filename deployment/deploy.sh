@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Trading Simulator Deployment Script
+# ZEBRAT TRADING Deployment Script
 # This script deploys the application to production
 
 APP_DIR="/opt/trading-sim"

@@ -1,4 +1,4 @@
-# Trading Simulator NGINX Configuration
+# ZEBRAT TRADING NGINX Configuration
 # Place this file in /etc/nginx/sites-available/ and symlink to /etc/nginx/sites-enabled/
 
 server {

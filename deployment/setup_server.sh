@@ -1,15 +1,15 @@
 #!/bin/bash
 set -e
 
-# Trading Simulator Server Setup Script
-# This script sets up a fresh Ubuntu server for the trading simulator
+# ZEBRAT TRADING Server Setup Script
+# This script sets up a fresh Ubuntu server for ZEBRAT TRADING
 
 APP_DIR="/opt/trading-sim"
 APP_USER="www-data"
 DB_NAME="trading_sim"
 DB_USER="trading_user"
 
-echo "Setting up Trading Simulator server..."
+echo "Setting up ZEBRAT TRADING server..."
 
 # Function to log messages
 log() {

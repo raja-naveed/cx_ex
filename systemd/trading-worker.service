@@ -1,5 +1,5 @@
 [Unit]
-Description=Trading Simulator Price Engine Worker
+Description=ZEBRAT TRADING Price Engine Worker
 After=network.target postgresql.service redis.service trading-web.service
 Wants=network.target
 Requires=postgresql.service redis.service

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Trading Simulator Restore Script
+# ZEBRAT TRADING Restore Script
 
 APP_DIR="/opt/trading-sim"
 BACKUP_DIR="/opt/backups/trading-sim"
@@ -48,7 +48,7 @@ if [ ! -f "$DB_BACKUP" ]; then
 fi
 
 # Confirmation
-echo "This will restore the trading simulator from backup timestamp: $TIMESTAMP"
+echo "This will restore ZEBRAT TRADING from backup timestamp: $TIMESTAMP"
 echo "Current application will be stopped and replaced."
 echo ""
 read -p "Are you sure you want to continue? (y/N): " -n 1 -r
