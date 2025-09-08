@@ -1,4 +1,4 @@
-# Trading Simulator
+# ZEBRAT TRADING
 
 A comprehensive Flask-based trading simulator with real-time price simulation, portfolio management, and administrative controls.
 

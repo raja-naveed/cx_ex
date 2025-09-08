@@ -1,6 +1,6 @@
-# Trading Simulator - Component Overview
+# ZEBRAT TRADING - Component Overview
 
-This document provides a complete overview of all components in the trading simulator system.
+This document provides a complete overview of all components in the ZEBRAT TRADING system.
 
 ## Application Structure
 
