@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Add Market Holiday{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Add Market Holiday</h1>
+            <a href="{{ url_for('admin.holidays') }}" class="btn btn-secondary">Back</a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">New Holiday Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.date.label(class="form-label") }}
+                        {{ form.date(class="form-control") }}
+                        {% if form.date.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Select the date when the market should remain closed</div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control", placeholder="e.g., New Year's Day") }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Name of the holiday for identification</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('admin.holidays') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title"><i class="fas fa-calendar-alt"></i> Common Market Holidays</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <ul class="small mb-0">
+                            <li>New Year's Day</li>
+                            <li>Martin Luther King Jr. Day</li>
+                            <li>Presidents Day</li>
+                            <li>Good Friday</li>
+                        </ul>
+                    </div>
+                    <div class="col-6">
+                        <ul class="small mb-0">
+                            <li>Memorial Day</li>
+                            <li>Independence Day</li>
+                            <li>Labor Day</li>
+                            <li>Thanksgiving</li>
+                            <li>Christmas Day</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

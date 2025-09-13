@@ -38,6 +38,7 @@
                             <div class="invalid-feedback d-block">
                                 {% for error in form.close_time.errors %}
                                     {{ error }}
+                                {% endfor %}
                             </div>
                         {% endif %}
                         <div class="form-text">Market closing time (24-hour format)</div>

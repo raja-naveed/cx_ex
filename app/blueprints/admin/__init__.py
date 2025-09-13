@@ -139,6 +139,56 @@ def edit_market_hours(day):
     days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     return render_template('admin/edit_market_hours.html', form=form, day=day, day_name=days[day])
 
+@bp.route('/holidays')
+@login_required
+@admin_required
+def holidays():
+    holidays = MarketCalendar.query.order_by(MarketCalendar.date).all()
+    return render_template('admin/holidays.html', holidays=holidays)
+
+@bp.route('/holidays/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_holiday():
+    form = HolidayForm()
+
+    if form.validate_on_submit():
+        existing = MarketCalendar.query.filter_by(date=form.date.data).first()
+        if existing:
+            flash('Holiday already exists for this date', 'error')
+            return render_template('admin/add_holiday.html', form=form)
+
+        holiday = MarketCalendar(
+            date=form.date.data,
+            name=form.name.data,
+            is_holiday=True
+        )
+        db.session.add(holiday)
+        db.session.commit()
+
+        AuditLog.create(current_user.id, 'add_holiday', 'market_calendar', holiday.id,
+                       f'Added holiday: {holiday.name} on {holiday.date}')
+
+        flash(f'Holiday "{holiday.name}" added for {holiday.date}', 'success')
+        return redirect(url_for('admin.holidays'))
+
+    return render_template('admin/add_holiday.html', form=form)
+
+@bp.route('/holidays/<int:holiday_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_holiday(holiday_id):
+    holiday = MarketCalendar.query.get_or_404(holiday_id)
+
+    AuditLog.create(current_user.id, 'delete_holiday', 'market_calendar', holiday_id,
+                   f'Deleted holiday: {holiday.name} on {holiday.date}')
+
+    db.session.delete(holiday)
+    db.session.commit()
+
+    flash(f'Holiday "{holiday.name}" deleted', 'success')
+    return redirect(url_for('admin.holidays'))
+
 @bp.route('/market-state/toggle', methods=['POST'])
 @login_required
 @admin_required
