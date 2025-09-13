@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Market Hours - {{ day_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Edit Market Hours - {{ day_name }}</h1>
+            <a href="{{ url_for('admin.market_hours') }}" class="btn btn-secondary">Back</a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ day_name }} Trading Hours</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.open_time.label(class="form-label") }}
+                        {{ form.open_time(class="form-control") }}
+                        {% if form.open_time.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.open_time.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Market opening time (24-hour format)</div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.close_time.label(class="form-label") }}
+                        {{ form.close_time(class="form-control") }}
+                        {% if form.close_time.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.close_time.errors %}
+                                    {{ error }}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Market closing time (24-hour format)</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('admin.market_hours') }}" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="card-title"><i class="fas fa-clock"></i> Time Format Examples</h6>
+                <ul class="mb-0">
+                    <li><strong>09:30</strong> - 9:30 AM</li>
+                    <li><strong>16:00</strong> - 4:00 PM</li>
+                    <li><strong>14:30</strong> - 2:30 PM</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

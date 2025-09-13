@@ -106,6 +106,39 @@ def edit_stock(stock_id):
     
     return render_template('admin/edit_stock.html', form=form, stock=stock)
 
+@bp.route('/market-hours')
+@login_required
+@admin_required
+def market_hours():
+    hours = MarketHours.query.order_by(MarketHours.day_of_week).all()
+    return render_template('admin/market_hours.html', hours=hours)
+
+@bp.route('/market-hours/<int:day>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_market_hours(day):
+    market_hour = MarketHours.query.filter_by(day_of_week=day).first()
+    if not market_hour:
+        flash('Market hours not found', 'error')
+        return redirect(url_for('admin.market_hours'))
+
+    form = MarketHoursForm(obj=market_hour)
+
+    if form.validate_on_submit():
+        market_hour.open_time = form.open_time.data
+        market_hour.close_time = form.close_time.data
+        db.session.commit()
+
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        AuditLog.create(current_user.id, 'update_market_hours', 'market_hours', day,
+                       f'Updated {days[day]} hours to {form.open_time.data}-{form.close_time.data}')
+
+        flash(f'{days[day]} market hours updated', 'success')
+        return redirect(url_for('admin.market_hours'))
+
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    return render_template('admin/edit_market_hours.html', form=form, day=day, day_name=days[day])
+
 @bp.route('/market-state/toggle', methods=['POST'])
 @login_required
 @admin_required
@@ -113,9 +146,9 @@ def toggle_market():
     current_state = MarketState.get_current()
     new_state = not current_state.is_open
     MarketState.set_market_open(new_state, emergency=True)
-    
+
     action = 'emergency_open' if new_state else 'emergency_close'
     AuditLog.create(current_user.id, action, 'market_state', None, f'Market {"opened" if new_state else "closed"} manually')
-    
+
     flash(f'Market {"opened" if new_state else "closed"}', 'success')
     return redirect(url_for('admin.index'))

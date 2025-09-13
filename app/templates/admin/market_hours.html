@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Market Hours - Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Market Hours Configuration</h1>
+            <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">Back to Admin</a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Trading Schedule</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>Open Time</th>
+                                <th>Close Time</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                            {% for hour in hours %}
+                            <tr>
+                                <td><strong>{{ days[hour.day_of_week] }}</strong></td>
+                                <td>{{ hour.open_time.strftime('%H:%M') if hour.open_time else 'Not set' }}</td>
+                                <td>{{ hour.close_time.strftime('%H:%M') if hour.close_time else 'Not set' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if hour.is_active else 'danger' }}">
+                                        {{ 'Active' if hour.is_active else 'Inactive' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin.edit_market_hours', day=hour.day_of_week) }}"
+                                       class="btn btn-sm btn-primary">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info mt-3">
+                    <h6><i class="fas fa-info-circle"></i> How It Works</h6>
+                    <ul class="mb-0">
+                        <li>The market will automatically open and close based on these scheduled hours</li>
+                        <li>Changes take effect immediately and will be applied on the next schedule check</li>
+                        <li>The market scheduler runs every 30 minutes to enforce these hours</li>
+                        <li>Emergency market controls override the schedule temporarily</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
