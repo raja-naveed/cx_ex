@@ -26,6 +26,14 @@ cx_ex/
 │   │   ├── portfolio/          # Portfolio management templates
 │   │   ├── cash/               # Cash management templates
 │   │   ├── admin/              # Admin interface templates
+│   │   │   ├── index.html      # Admin dashboard
+│   │   │   ├── stocks.html     # Stock listing management
+│   │   │   ├── create_stock.html # New stock creation form
+│   │   │   ├── edit_stock.html # Stock editing form
+│   │   │   ├── market_hours.html # Market hours configuration
+│   │   │   ├── edit_market_hours.html # Individual day hours editing
+│   │   │   ├── holidays.html   # Holiday calendar management
+│   │   │   └── add_holiday.html # Add new holiday form
 │   │   └── common/             # Common templates
 │   └── static/                 # Static assets
 │       ├── css/                # Stylesheets
@@ -68,7 +76,7 @@ cx_ex/
 - `trading`: Order placement and management
 - `portfolio`: Position tracking and P&L
 - `cash`: Deposit and withdrawal management
-- `admin`: Administrative controls and stock management
+- `admin`: Administrative controls, stock management, market hours, and holiday calendar
 - `common`: Homepage and utility endpoints
 
 ### 2. Price Engine Worker (`simple_price_worker.py`)
@@ -128,7 +136,36 @@ cx_ex/
 - `flask db upgrade`: Apply pending migrations
 - `flask db downgrade`: Rollback migrations
 
-### 6. System Services (`systemd/`)
+### 6. Admin Interface (`app/blueprints/admin/`)
+
+**Purpose**: Administrative controls for market management and system configuration
+
+**Key Features**:
+- **Stock Management**: Create, edit, and manage tradeable securities
+- **Market Hours Configuration**: Set trading hours for each day of the week
+- **Holiday Calendar**: Configure market holidays and special closures
+- **Emergency Market Controls**: Manual market open/close override
+- **System Monitoring**: View market state and basic system metrics
+- **Audit Logging**: All admin actions are logged with user attribution
+
+**Routes & Functions**:
+- `/admin/` - Dashboard with market state and quick controls
+- `/admin/stocks` - Stock listing and management interface
+- `/admin/stocks/create` - Create new tradeable stock
+- `/admin/stocks/<id>/edit` - Edit existing stock details
+- `/admin/market-hours` - View and manage trading schedule
+- `/admin/market-hours/<day>/edit` - Edit trading hours for specific day
+- `/admin/holidays` - Holiday calendar management
+- `/admin/holidays/add` - Add new market holiday
+- `/admin/holidays/<id>/delete` - Remove market holiday
+- `/admin/market-state/toggle` - Emergency market open/close
+
+**Access Control**:
+- Requires authenticated user with admin role
+- All actions protected by CSRF tokens
+- Rate limiting applied to sensitive endpoints
+
+### 7. System Services (`systemd/`)
 
 **Purpose**: systemd service definitions for production deployment
 
@@ -138,7 +175,7 @@ cx_ex/
 - `trading-scheduler.service`: Market schedule checker
 - `trading-scheduler.timer`: Timer for periodic schedule checks
 
-### 7. Web Server Configuration (`nginx/`)
+### 8. Web Server Configuration (`nginx/`)
 
 **Purpose**: NGINX reverse proxy with security and performance features
 
@@ -150,7 +187,7 @@ cx_ex/
 - Rate limiting for sensitive endpoints
 - Health check proxying
 
-### 8. Deployment Scripts (`deployment/`)
+### 9. Deployment Scripts (`deployment/`)
 
 **Purpose**: Production deployment and maintenance automation
 

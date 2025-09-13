@@ -140,11 +140,24 @@ A comprehensive Flask-based trading simulator with real-time price simulation, p
 
 ### Market Hours Configuration
 
-Market hours are configured in the database through the admin interface:
-- Monday-Friday trading days (weekday 0-4)
-- Configurable open/close times per day
-- Holiday calendar support
-- Emergency market controls for administrators
+Market hours and holidays are configured through the admin interface:
+
+**Trading Hours**:
+- Access via Admin Dashboard → Market Hours
+- Configure open/close times for each day of the week (Monday = 0, Sunday = 6)
+- Default: Monday-Friday 9:30 AM - 4:00 PM EST
+- Changes take effect on next scheduler check (every 30 minutes)
+
+**Holiday Calendar**:
+- Access via Admin Dashboard → Holiday Calendar
+- Add/remove market holidays with specific dates
+- Market remains closed on holiday dates regardless of trading hours
+- Pre-configured holidays: New Year's Day, Independence Day, Christmas Day
+
+**Emergency Controls**:
+- Manual market open/close override via admin dashboard
+- Sets emergency flag to distinguish from scheduled operations
+- Use sparingly for maintenance or crisis situations
 
 ## API Endpoints
 
@@ -179,6 +192,11 @@ Market hours are configured in the database through the admin interface:
 - `GET /admin/stocks` - Stock management
 - `GET/POST /admin/stocks/create` - Create new stocks
 - `GET/POST /admin/stocks/<id>/edit` - Edit stocks
+- `GET /admin/market-hours` - Market hours configuration
+- `GET/POST /admin/market-hours/<day>/edit` - Edit trading hours by day
+- `GET /admin/holidays` - Holiday calendar management
+- `GET/POST /admin/holidays/add` - Add market holidays
+- `POST /admin/holidays/<id>/delete` - Delete market holidays
 - `POST /admin/market-state/toggle` - Emergency market controls
 
 ## Database Schema
