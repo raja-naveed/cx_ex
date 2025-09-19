@@ -4,7 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField, IntegerField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 from app import db, limiter
-from app.models import Stock, Order, OrderSide, OrderStatus
+from app.models import Stock, Order, OrderSide, OrderStatus, PriceLive
 import uuid
 
 bp = Blueprint('trading', __name__)
@@ -26,8 +26,18 @@ def orders():
 @limiter.limit("10 per minute")
 def place_order():
     form = OrderForm()
-    form.stock_id.choices = [(s.id, f"{s.ticker} - {s.company}") for s in Stock.query.filter_by(is_active=True).all()]
-    
+    stocks = Stock.query.filter_by(is_active=True).all()
+    form.stock_id.choices = [(s.id, f"{s.ticker} - {s.company}") for s in stocks]
+
+    # Get current prices for all stocks
+    stock_prices = {}
+    for stock in stocks:
+        price_live = PriceLive.query.filter_by(stock_id=stock.id).first()
+        if price_live:
+            stock_prices[stock.id] = float(price_live.last_price)
+        else:
+            stock_prices[stock.id] = float(stock.initial_price)
+
     if form.validate_on_submit():
         order = Order(
             user_id=current_user.id,
@@ -38,11 +48,11 @@ def place_order():
         )
         db.session.add(order)
         db.session.commit()
-        
+
         flash('Order placed successfully', 'success')
         return redirect(url_for('trading.orders'))
-    
-    return render_template('trading/place_order.html', form=form)
+
+    return render_template('trading/place_order.html', form=form, stock_prices=stock_prices)
 
 @bp.route('/cancel-order/<int:order_id>', methods=['POST'])
 @login_required
