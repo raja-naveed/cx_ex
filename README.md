@@ -6,19 +6,23 @@ A comprehensive Flask-based trading simulator with real-time price simulation, p
 
 ### Core Trading System
 - **Real-time Price Simulation**: Random walk algorithm with configurable drift and volatility
-- **Market Orders**: Buy/sell orders executed at current market prices
+- **Interactive Candlestick Charts**: Professional OHLC charts with multiple timeframes (1H, 4H, 1D)
+- **Market Orders**: Buy/sell orders executed at current market prices with price preview
 - **Portfolio Management**: Track positions, P&L, and cash balances
 - **Market Hours**: Configurable trading hours with holiday calendar
 - **Order Queue**: Orders placed during closed market hours are queued for execution
 
 ### User Management
 - **Customer Accounts**: Registration, login, and session management
-- **Admin Interface**: Stock management, market controls, and system monitoring
+- **Enhanced Admin Interface**: Comprehensive dashboard with user management, password reset capabilities
+- **Live User Statistics**: Real-time user count, active users, trading activity monitoring
 - **Role-based Access**: Customer and admin role separation
 - **Audit Logging**: Complete audit trail of all administrative actions
 
 ### Technical Features
 - **Real-time Updates**: Live price updates during market hours
+- **Candlestick Data Engine**: Automated OHLC data aggregation with historical backfill
+- **Modern UI**: Interactive charts, mini price trends, responsive card-based design
 - **Persistent Data**: PostgreSQL database with proper migrations
 - **Session Management**: Redis-backed sessions with security features
 - **Rate Limiting**: Protection against abuse and brute force attacks
@@ -32,10 +36,11 @@ A comprehensive Flask-based trading simulator with real-time price simulation, p
 - **Forms**: WTForms with validation and CSRF protection
 - **Database**: SQLAlchemy ORM with Alembic migrations
 
-### Price Engine Worker
-- **Random Walk**: Geometric Brownian motion price simulation
+### Background Workers
+- **Price Engine**: Geometric Brownian motion price simulation with tick generation
+- **Candle Aggregator**: OHLC data generation for 1H, 4H, and daily timeframes
+- **Market Scheduler**: Automatic market open/close based on configured hours
 - **Order Processing**: Automatic execution of queued orders when market is open
-- **Market Schedule**: Automatic market open/close based on configured hours
 - **Position Updates**: Real-time calculation of portfolio values and P&L
 
 ### Deployment Stack
@@ -83,10 +88,16 @@ A comprehensive Flask-based trading simulator with real-time price simulation, p
    python app.py
 
    # Terminal 2: Price worker
-   python simple_price_worker.py
+   python price_worker.py
 
-   # Terminal 3: Set market open
-   python set_market_open.py true
+   # Terminal 3: Candle aggregator
+   python candle_aggregator.py
+
+   # Terminal 4: Market scheduler
+   python market_scheduler.py
+
+   # Or start all workers at once:
+   ./start_workers.sh
    ```
 
 5. **Access Application**:
@@ -137,6 +148,8 @@ A comprehensive Flask-based trading simulator with real-time price simulation, p
 | `DEFAULT_DRIFT` | 0.0001 | Daily price drift (positive = upward bias) |
 | `DEFAULT_VOLATILITY` | 0.02 | Price volatility (higher = more movement) |
 | `MAX_TICK_PCT` | 0.05 | Maximum single tick movement (5%) |
+| `CANDLE_AGGREGATION_FREQUENCY` | 300 | Candle aggregation interval (seconds) |
+| `CANDLE_BACKFILL_DAYS` | 30 | Days of historical candle data to generate |
 
 ### Market Hours Configuration
 
@@ -163,9 +176,10 @@ Market hours and holidays are configured through the admin interface:
 
 ### Public Endpoints
 - `GET /` - Homepage
-- `GET /market/stocks` - Stock listing (public view)
-- `GET /market/stock/<id>` - Stock details
+- `GET /market/stocks` - Interactive stock listing with mini charts
+- `GET /market/stock/<id>` - Stock details with full candlestick chart
 - `GET /market/prices` - Current price data (JSON)
+- `GET /market/api/stock/<id>/candles` - Historical OHLC data (JSON)
 - `GET /health` - Health check endpoint
 
 ### Authentication
@@ -188,10 +202,16 @@ Market hours and holidays are configured through the admin interface:
 - `GET/POST /cash/withdraw` - Withdraw funds
 
 ### Admin Interface (Admin Only)
-- `GET /admin/` - Admin dashboard
+- `GET /admin/` - Enhanced admin dashboard with live statistics
 - `GET /admin/stocks` - Stock management
 - `GET/POST /admin/stocks/create` - Create new stocks
 - `GET/POST /admin/stocks/<id>/edit` - Edit stocks
+- `GET /admin/users` - User management with pagination
+- `GET /admin/users/<id>` - User detail view with portfolio information
+- `GET/POST /admin/users/<id>/edit` - Edit user details and permissions
+- `GET/POST /admin/users/<id>/reset-password` - Password reset functionality
+- `GET /admin/candles` - Candle data dashboard and statistics
+- `GET /admin/api/candles/<stock_id>` - Candle data API
 - `GET /admin/market-hours` - Market hours configuration
 - `GET/POST /admin/market-hours/<day>/edit` - Edit trading hours by day
 - `GET /admin/holidays` - Holiday calendar management
@@ -206,6 +226,7 @@ Market hours and holidays are configured through the admin interface:
 - `stocks` - Tradeable securities
 - `prices_live` - Current OHLC price data
 - `price_ticks` - Historical price movements
+- `candle_data` - OHLC candlestick data for charts (1H, 4H, 1D intervals)
 - `orders` - Trade orders (queued, executed, canceled)
 - `trades` - Executed transactions
 - `positions` - Current user holdings
@@ -280,13 +301,18 @@ sudo tail -f /var/log/nginx/trading-sim_error.log
 **Service Management**:
 ```bash
 # Restart services
-sudo systemctl restart trading-web trading-worker
+sudo systemctl restart trading-web trading-worker trading-candles
 
 # Check status
-sudo systemctl status trading-web trading-worker
+sudo systemctl status trading-web trading-worker trading-candles
 
 # View service logs
 sudo journalctl -u trading-web --since "1 hour ago"
+sudo journalctl -u trading-candles --since "1 hour ago"
+
+# Start/stop all workers
+./start_workers.sh
+./stop_workers.sh
 ```
 
 **Database Operations**:
