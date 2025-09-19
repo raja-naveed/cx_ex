@@ -3,118 +3,214 @@
 {% block title %}{{ stock.ticker }} - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="mb-0">{{ stock.ticker }} - {{ stock.company }}</h3>
-            </div>
+<!-- Header with Stock Info and Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark text-white">
             <div class="card-body">
-                <div class="row">
+                <div class="row align-items-center">
                     <div class="col-md-6">
-                        <h2 class="text-primary" data-stock-id="{{ stock.id }}">
+                        <h2 class="mb-1">{{ stock.ticker }}</h2>
+                        <h6 class="text-light mb-3">{{ stock.company }}</h6>
+                        <div class="d-flex align-items-center">
+                            <h3 class="mb-0 me-3" id="current-price" data-stock-id="{{ stock.id }}">
+                                {% if stock.prices_live %}
+                                    ${{ "%.4f"|format(stock.prices_live.last_price) }}
+                                {% else %}
+                                    ${{ "%.4f"|format(stock.initial_price) }}
+                                {% endif %}
+                            </h3>
                             {% if stock.prices_live %}
-                                ${{ "%.2f"|format(stock.prices_live.last_price) }}
-                            {% else %}
-                                ${{ "%.2f"|format(stock.initial_price) }}
+                                {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
+                                {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
+                                <div id="price-change" class="badge fs-6 {% if change > 0 %}bg-success{% elif change < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                                    {{ "+$%.4f"|format(change) if change >= 0 else "$%.4f"|format(change) }}
+                                    ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
+                                </div>
                             {% endif %}
-                        </h2>
-                        {% if stock.prices_live %}
-                            {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
-                            {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
-                            <p class="{% if change > 0 %}text-success{% elif change < 0 %}text-danger{% endif %} mb-0">
-                                {{ "+$%.2f"|format(change) if change >= 0 else "$%.2f"|format(change) }}
-                                ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
-                            </p>
-                        {% endif %}
+                        </div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6 text-end">
                         {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}" class="btn btn-success me-2">Buy</a>
-                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}&side=sell" class="btn btn-danger">Sell</a>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row">
-                    <div class="col-md-3">
-                        <strong>Open:</strong><br>
-                        {% if stock.prices_live %}
-                            ${{ "%.2f"|format(stock.prices_live.open_price) }}
+                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}" class="btn btn-success me-2">
+                                <i class="fa fa-plus"></i> Buy {{ stock.ticker }}
+                            </a>
+                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}&side=sell" class="btn btn-danger">
+                                <i class="fa fa-minus"></i> Sell {{ stock.ticker }}
+                            </a>
                         {% else %}
-                            ${{ "%.2f"|format(stock.initial_price) }}
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-light">Login to Trade</a>
                         {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <strong>High:</strong><br>
-                        {% if stock.prices_live %}
-                            ${{ "%.2f"|format(stock.prices_live.high_price) }}
-                        {% else %}
-                            ${{ "%.2f"|format(stock.initial_price) }}
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <strong>Low:</strong><br>
-                        {% if stock.prices_live %}
-                            ${{ "%.2f"|format(stock.prices_live.low_price) }}
-                        {% else %}
-                            ${{ "%.2f"|format(stock.initial_price) }}
-                        {% endif %}
-                    </div>
-                    <div class="col-md-3">
-                        <strong>Volume:</strong><br>
-                        {{ "{:,}".format(stock.float_shares) }}
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <strong>Market Cap:</strong><br>
-                        ${{ "{:,.0f}".format(stock.get_market_cap()) }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Shares Outstanding:</strong><br>
-                        {{ "{:,}".format(stock.float_shares) }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+</div>
+
+<!-- Candlestick Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fa fa-chart-line"></i> {{ stock.ticker }} Price Chart
+                    </h5>
+                    <div class="btn-group btn-group-sm" role="group" id="chart-intervals">
+                        <input type="radio" class="btn-check" name="chartInterval" id="interval-1h" value="1h" checked>
+                        <label class="btn btn-outline-primary" for="interval-1h">1H</label>
+
+                        <input type="radio" class="btn-check" name="chartInterval" id="interval-4h" value="4h">
+                        <label class="btn btn-outline-primary" for="interval-4h">4H</label>
+
+                        <input type="radio" class="btn-check" name="chartInterval" id="interval-1d" value="1d">
+                        <label class="btn btn-outline-primary" for="interval-1d">1D</label>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="chart-container" style="height: 500px; position: relative;">
+                    <div id="loading-chart" class="d-flex align-items-center justify-content-center" style="height: 500px;">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading chart...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading candlestick chart...</p>
+                        </div>
+                    </div>
+                    <canvas id="candlestick-chart" style="display: none;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Details and Trading Panel -->
+<div class="row">
+    <!-- Market Data -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Market Data</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <strong class="text-muted d-block">Open</strong>
+                            <span class="h6">
+                                {% if stock.prices_live %}
+                                    ${{ "%.4f"|format(stock.prices_live.open_price) }}
+                                {% else %}
+                                    ${{ "%.4f"|format(stock.initial_price) }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <strong class="text-muted d-block">High</strong>
+                            <span class="h6 text-success">
+                                {% if stock.prices_live %}
+                                    ${{ "%.4f"|format(stock.prices_live.high_price) }}
+                                {% else %}
+                                    ${{ "%.4f"|format(stock.initial_price) }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <strong class="text-muted d-block">Low</strong>
+                            <span class="h6 text-danger">
+                                {% if stock.prices_live %}
+                                    ${{ "%.4f"|format(stock.prices_live.low_price) }}
+                                {% else %}
+                                    ${{ "%.4f"|format(stock.initial_price) }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <strong class="text-muted d-block">Market Cap</strong>
+                            <span class="h6">${{ "{:,.0f}".format(stock.get_market_cap()|float) }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Shares Outstanding:</strong><br>
+                        <span class="text-primary">{{ "{:,}".format(stock.float_shares) }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Last Updated:</strong><br>
+                        <span class="text-muted">
+                            {% if stock.prices_live %}
+                                {{ stock.prices_live.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% else %}
+                                {{ stock.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Trade Panel -->
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Quick Trade</h5>
+                <h5 class="mb-0">
+                    <i class="fa fa-bolt"></i> Quick Trade
+                </h5>
             </div>
             <div class="card-body">
                 {% if current_user.is_authenticated %}
-                    <form method="POST" action="{{ url_for('trading.place_order') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="stock_id" value="{{ stock.id }}">
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Side</label>
-                            <select name="side" class="form-select" required>
-                                <option value="buy">Buy</option>
-                                <option value="sell">Sell</option>
-                            </select>
+                    <div class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="d-grid">
+                                    <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}"
+                                       class="btn btn-success">
+                                        <i class="fa fa-arrow-up"></i> Buy
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-grid">
+                                    <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}&side=sell"
+                                       class="btn btn-danger">
+                                        <i class="fa fa-arrow-down"></i> Sell
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Quantity</label>
-                            <input type="number" name="quantity" class="form-control" min="1" max="10000" required>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Place Market Order</button>
-                        </div>
-                    </form>
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="fa fa-info-circle"></i>
+                        <strong>Market Orders:</strong> Execute immediately at current market price when market is open.
+                    </div>
+
+                    <div class="text-center">
+                        <small class="text-muted">
+                            Your Cash Balance: <strong>${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</strong>
+                        </small>
+                    </div>
                 {% else %}
-                    <p class="text-muted">Please <a href="{{ url_for('auth.login') }}">login</a> to trade.</p>
+                    <div class="text-center">
+                        <p class="text-muted mb-3">Please login to start trading</p>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary">Create Account</a>
+                        </div>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -122,6 +218,246 @@
 </div>
 
 <div class="mt-4">
-    <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary">← Back to Market</a>
+    <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary">
+        <i class="fa fa-arrow-left"></i> Back to Market
+    </a>
 </div>
+
+<!-- Chart.js and Candlestick Chart Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<script>
+let chart = null;
+const stockId = {{ stock.id }};
+let currentInterval = '1h';
+
+// Initialize chart on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadChart(currentInterval);
+
+    // Add event listeners for interval buttons
+    document.querySelectorAll('input[name="chartInterval"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                currentInterval = this.value;
+                loadChart(currentInterval);
+            }
+        });
+    });
+});
+
+function loadChart(interval) {
+    const loadingDiv = document.getElementById('loading-chart');
+    const chartCanvas = document.getElementById('candlestick-chart');
+
+    // Show loading
+    loadingDiv.style.display = 'flex';
+    chartCanvas.style.display = 'none';
+
+    // Fetch candle data
+    fetch(`/market/api/stock/${stockId}/candles?interval=${interval}&limit=100`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showError(data.error);
+                return;
+            }
+
+            renderChart(data);
+        })
+        .catch(error => {
+            console.error('Error loading chart data:', error);
+            showError('Failed to load chart data');
+        });
+}
+
+function renderChart(data) {
+    const ctx = document.getElementById('candlestick-chart').getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (chart) {
+        chart.destroy();
+    }
+
+    // Prepare data for Chart.js
+    const chartData = data.data.map(candle => ({
+        x: candle.x,
+        o: candle.open,
+        h: candle.high,
+        l: candle.low,
+        c: candle.close
+    }));
+
+    // Hide loading and show chart
+    document.getElementById('loading-chart').style.display = 'none';
+    document.getElementById('candlestick-chart').style.display = 'block';
+
+    // Create the chart
+    chart = new Chart(ctx, {
+        type: 'candlestick',
+        data: {
+            datasets: [{
+                label: `${data.stock.ticker} Price`,
+                data: chartData,
+                borderColor: {
+                    up: '#26a69a',
+                    down: '#ef5350',
+                    unchanged: '#999'
+                },
+                backgroundColor: {
+                    up: 'rgba(38, 166, 154, 0.1)',
+                    down: 'rgba(239, 83, 80, 0.1)',
+                    unchanged: 'rgba(153, 153, 153, 0.1)'
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: currentInterval === '1h' ? 'hour' :
+                              currentInterval === '4h' ? 'day' : 'day',
+                        displayFormats: {
+                            hour: 'MMM d, HH:mm',
+                            day: 'MMM d'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Price ($)'
+                    },
+                    grid: {
+                        color: 'rgba(200, 200, 200, 0.3)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            const date = new Date(context[0].parsed.x);
+                            return date.toLocaleString();
+                        },
+                        label: function(context) {
+                            const data = context.raw;
+                            return [
+                                `Open: $${data.o.toFixed(4)}`,
+                                `High: $${data.h.toFixed(4)}`,
+                                `Low: $${data.l.toFixed(4)}`,
+                                `Close: $${data.c.toFixed(4)}`
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function showError(message) {
+    document.getElementById('loading-chart').innerHTML = `
+        <div class="alert alert-warning text-center">
+            <i class="fa fa-exclamation-triangle"></i>
+            <br>
+            ${message}
+            <br>
+            <small class="text-muted">Chart data may not be available yet. Try starting the candle aggregator service.</small>
+        </div>
+    `;
+}
+
+// Custom candlestick chart type for Chart.js
+Chart.register({
+    id: 'candlestick',
+    defaults: {
+        dataElementType: 'candlestick',
+        datasetElementType: false,
+        color: {
+            up: '#26a69a',
+            down: '#ef5350',
+            unchanged: '#999'
+        }
+    },
+    scales: {
+        x: {
+            type: 'time'
+        },
+        y: {
+            type: 'linear'
+        }
+    }
+});
+
+// Simple candlestick implementation
+class CandlestickElement extends Chart.Element {
+    draw(ctx) {
+        const {x, open, high, low, close} = this.getProps(['x', 'open', 'high', 'low', 'close']);
+
+        const isUp = close >= open;
+        const color = isUp ? '#26a69a' : '#ef5350';
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = isUp ? 'rgba(38, 166, 154, 0.1)' : color;
+        ctx.lineWidth = 1;
+
+        // Draw the wick (high-low line)
+        ctx.beginPath();
+        ctx.moveTo(x, high);
+        ctx.lineTo(x, low);
+        ctx.stroke();
+
+        // Draw the body (open-close rectangle)
+        const bodyHeight = Math.abs(close - open);
+        const bodyTop = Math.max(open, close);
+        const bodyWidth = 8; // Fixed width for candles
+
+        ctx.fillRect(x - bodyWidth/2, bodyTop, bodyWidth, bodyHeight);
+        ctx.strokeRect(x - bodyWidth/2, bodyTop, bodyWidth, bodyHeight);
+    }
+}
+
+CandlestickElement.id = 'candlestick';
+CandlestickElement.defaults = {};
+
+Chart.register(CandlestickElement);
+
+Chart.controllers.candlestick = Chart.DatasetController.extend({
+    dataElementType: CandlestickElement,
+
+    update: function(mode) {
+        const meta = this.getMeta();
+        const dataset = this.getDataset();
+        const data = dataset.data || [];
+
+        meta.data.forEach((element, index) => {
+            const dataPoint = data[index];
+            if (dataPoint) {
+                element.x = this.chart.scales.x.getPixelForValue(dataPoint.x);
+                element.open = this.chart.scales.y.getPixelForValue(dataPoint.o);
+                element.high = this.chart.scales.y.getPixelForValue(dataPoint.h);
+                element.low = this.chart.scales.y.getPixelForValue(dataPoint.l);
+                element.close = this.chart.scales.y.getPixelForValue(dataPoint.c);
+            }
+        });
+    }
+});
+</script>
+
 {% endblock %}

@@ -72,6 +72,7 @@ class Stock(db.Model):
     
     prices_live = db.relationship('PriceLive', backref='stock', uselist=False)
     price_ticks = db.relationship('PriceTick', backref='stock', lazy=True)
+    candle_data = db.relationship('CandleData', backref='stock', lazy=True)
     orders = db.relationship('Order', backref='stock', lazy=True)
     trades = db.relationship('Trade', backref='stock', lazy=True)
     positions = db.relationship('Position', backref='stock', lazy=True)
@@ -112,6 +113,71 @@ class PriceTick(db.Model):
     timestamp = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
     
     __table_args__ = (Index('ix_price_ticks_stock_timestamp', 'stock_id', 'timestamp'),)
+
+class CandleData(db.Model):
+    __tablename__ = 'candle_data'
+
+    id = db.Column(db.Integer, primary_key=True)
+    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'), nullable=False)
+    interval = db.Column(db.String(10), nullable=False)  # '1h', '4h', '1d', etc.
+    timestamp_start = db.Column(db.DateTime(timezone=True), nullable=False)
+    timestamp_end = db.Column(db.DateTime(timezone=True), nullable=False)
+    open_price = db.Column(db.Numeric(10, 4), nullable=False)
+    high_price = db.Column(db.Numeric(10, 4), nullable=False)
+    low_price = db.Column(db.Numeric(10, 4), nullable=False)
+    close_price = db.Column(db.Numeric(10, 4), nullable=False)
+    volume = db.Column(db.Integer, default=0)  # Number of trades/ticks in this period
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.utcnow)
+
+    __table_args__ = (
+        Index('ix_candle_data_stock_interval_start', 'stock_id', 'interval', 'timestamp_start'),
+        UniqueConstraint('stock_id', 'interval', 'timestamp_start', name='uq_candle_data_stock_interval_start'),
+    )
+
+    @classmethod
+    def create_candle_from_ticks(cls, stock_id, interval, start_time, end_time, price_ticks):
+        """Create a candle from a list of price ticks"""
+        if not price_ticks:
+            return None
+
+        prices = [float(tick.price) for tick in price_ticks]
+
+        candle = cls(
+            stock_id=stock_id,
+            interval=interval,
+            timestamp_start=start_time,
+            timestamp_end=end_time,
+            open_price=prices[0],  # First price in period
+            high_price=max(prices),
+            low_price=min(prices),
+            close_price=prices[-1],  # Last price in period
+            volume=len(price_ticks)
+        )
+
+        return candle
+
+    @classmethod
+    def get_latest_candle(cls, stock_id, interval):
+        """Get the most recent candle for a stock and interval"""
+        return cls.query.filter_by(
+            stock_id=stock_id,
+            interval=interval
+        ).order_by(cls.timestamp_start.desc()).first()
+
+    @classmethod
+    def get_candles_range(cls, stock_id, interval, start_time, end_time, limit=None):
+        """Get candles for a stock within a time range"""
+        query = cls.query.filter(
+            cls.stock_id == stock_id,
+            cls.interval == interval,
+            cls.timestamp_start >= start_time,
+            cls.timestamp_start <= end_time
+        ).order_by(cls.timestamp_start.asc())
+
+        if limit:
+            query = query.limit(limit)
+
+        return query.all()
 
 class Order(db.Model):
     __tablename__ = 'orders'

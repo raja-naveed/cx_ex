@@ -1,11 +1,11 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, DecimalField, IntegerField, BooleanField, SubmitField, DateField, TimeField, PasswordField, SelectField
 from wtforms.validators import DataRequired, NumberRange, Length, Email, Optional
 from functools import wraps
 from app import db
-from app.models import Stock, PriceLive, MarketHours, MarketCalendar, MarketState, AuditLog, UserRole, User, Order, Trade, CashLedger
+from app.models import Stock, PriceLive, MarketHours, MarketCalendar, MarketState, AuditLog, UserRole, User, Order, Trade, CashLedger, CandleData
 from decimal import Decimal
 
 bp = Blueprint('admin', __name__)
@@ -315,3 +315,75 @@ def reset_user_password(user_id):
         return redirect(url_for('admin.user_detail', user_id=user.id))
 
     return render_template('admin/reset_password.html', form=form, user=user)
+
+@bp.route('/api/candles/<int:stock_id>')
+@login_required
+@admin_required
+def get_candles_api(stock_id):
+    """API endpoint to get candle data for a stock"""
+    interval = request.args.get('interval', '1h')
+    limit = request.args.get('limit', 100, type=int)
+
+    # Validate interval
+    valid_intervals = ['1h', '4h', '1d']
+    if interval not in valid_intervals:
+        return jsonify({'error': 'Invalid interval. Must be one of: ' + ', '.join(valid_intervals)}), 400
+
+    # Validate limit
+    if limit > 1000:
+        limit = 1000
+
+    # Get the stock
+    stock = Stock.query.get_or_404(stock_id)
+
+    # Get candles
+    candles = CandleData.query.filter_by(
+        stock_id=stock_id,
+        interval=interval
+    ).order_by(CandleData.timestamp_start.desc()).limit(limit).all()
+
+    # Format response
+    candle_data = []
+    for candle in reversed(candles):  # Reverse to get chronological order
+        candle_data.append({
+            'timestamp': candle.timestamp_start.isoformat(),
+            'timestamp_end': candle.timestamp_end.isoformat(),
+            'open': float(candle.open_price),
+            'high': float(candle.high_price),
+            'low': float(candle.low_price),
+            'close': float(candle.close_price),
+            'volume': candle.volume
+        })
+
+    return jsonify({
+        'stock': {
+            'id': stock.id,
+            'ticker': stock.ticker,
+            'company': stock.company
+        },
+        'interval': interval,
+        'count': len(candle_data),
+        'candles': candle_data
+    })
+
+@bp.route('/candles')
+@login_required
+@admin_required
+def candles_dashboard():
+    """Dashboard to view candle data"""
+    stocks = Stock.query.filter_by(is_active=True).all()
+
+    # Get candle counts for each stock
+    candle_stats = {}
+    for stock in stocks:
+        stats = {}
+        for interval in ['1h', '4h', '1d']:
+            count = CandleData.query.filter_by(stock_id=stock.id, interval=interval).count()
+            latest = CandleData.get_latest_candle(stock.id, interval)
+            stats[interval] = {
+                'count': count,
+                'latest': latest.timestamp_start.isoformat() if latest else None
+            }
+        candle_stats[stock.id] = stats
+
+    return render_template('admin/candles.html', stocks=stocks, candle_stats=candle_stats)

@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Candle Data Dashboard - ZEBRAT TRADING{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Candle Data Dashboard</h2>
+            <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h6><i class="fa fa-info-circle"></i> About Candle Data</h6>
+            <p class="mb-1">This system automatically aggregates price tick data into OHLC (Open, High, Low, Close) candlestick data for charting.</p>
+            <p class="mb-0">Data is collected at 1-hour, 4-hour, and daily intervals. The candle aggregator runs every 5 minutes to generate new candles.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Candle Data by Stock</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Stock</th>
+                                <th>1 Hour Candles</th>
+                                <th>4 Hour Candles</th>
+                                <th>Daily Candles</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in stocks %}
+                            <tr>
+                                <td>
+                                    <strong>{{ stock.ticker }}</strong><br>
+                                    <small class="text-muted">{{ stock.company }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="badge bg-primary">{{ candle_stats[stock.id]['1h']['count'] }} candles</span>
+                                        {% if candle_stats[stock.id]['1h']['latest'] %}
+                                            <small class="text-muted mt-1">Latest: {{ candle_stats[stock.id]['1h']['latest'][:16] }}</small>
+                                        {% else %}
+                                            <small class="text-warning mt-1">No data</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="badge bg-success">{{ candle_stats[stock.id]['4h']['count'] }} candles</span>
+                                        {% if candle_stats[stock.id]['4h']['latest'] %}
+                                            <small class="text-muted mt-1">Latest: {{ candle_stats[stock.id]['4h']['latest'][:16] }}</small>
+                                        {% else %}
+                                            <small class="text-warning mt-1">No data</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span class="badge bg-info">{{ candle_stats[stock.id]['1d']['count'] }} candles</span>
+                                        {% if candle_stats[stock.id]['1d']['latest'] %}
+                                            <small class="text-muted mt-1">Latest: {{ candle_stats[stock.id]['1d']['latest'][:16] }}</small>
+                                        {% else %}
+                                            <small class="text-warning mt-1">No data</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" onclick="viewCandles({{ stock.id }}, '1h')">1H</button>
+                                        <button class="btn btn-outline-success" onclick="viewCandles({{ stock.id }}, '4h')">4H</button>
+                                        <button class="btn btn-outline-info" onclick="viewCandles({{ stock.id }}, '1d')">1D</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Endpoint Information -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">API Access</h6>
+            </div>
+            <div class="card-body">
+                <p>Access candle data programmatically via the API:</p>
+                <code>GET /admin/api/candles/{stock_id}?interval={1h|4h|1d}&limit={number}</code>
+                <p class="mt-2 mb-0">Example: <code>/admin/api/candles/1?interval=1h&limit=50</code></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for displaying candle data -->
+<div class="modal fade" id="candleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Candle Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="candleContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewCandles(stockId, interval) {
+    const modal = new bootstrap.Modal(document.getElementById('candleModal'));
+    const content = document.getElementById('candleContent');
+
+    // Show loading spinner
+    content.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading ${interval} candles...</p>
+        </div>
+    `;
+
+    modal.show();
+
+    // Fetch candle data
+    fetch(`/admin/api/candles/${stockId}?interval=${interval}&limit=20`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                content.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+
+            let html = `
+                <h6>${data.stock.ticker} - ${data.stock.company}</h6>
+                <p>Interval: ${data.interval} | Candles: ${data.count}</p>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Open</th>
+                                <th>High</th>
+                                <th>Low</th>
+                                <th>Close</th>
+                                <th>Volume</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            data.candles.slice(-10).forEach(candle => {
+                const time = new Date(candle.timestamp).toLocaleString();
+                html += `
+                    <tr>
+                        <td>${time}</td>
+                        <td>$${candle.open.toFixed(4)}</td>
+                        <td class="text-success">$${candle.high.toFixed(4)}</td>
+                        <td class="text-danger">$${candle.low.toFixed(4)}</td>
+                        <td>$${candle.close.toFixed(4)}</td>
+                        <td>${candle.volume}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            if (data.candles.length === 0) {
+                html = `<div class="alert alert-warning">No candle data available for ${data.stock.ticker} at ${interval} interval.</div>`;
+            }
+
+            content.innerHTML = html;
+        })
+        .catch(error => {
+            content.innerHTML = `<div class="alert alert-danger">Error loading candle data: ${error.message}</div>`;
+        });
+}
+</script>
+
+{% endblock %}

@@ -10,30 +10,39 @@
     {% endif %}
 </div>
 
+<!-- Stock List Table with Mini Charts -->
 <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="table table-hover">
         <thead class="table-dark">
             <tr>
                 <th>Ticker</th>
                 <th>Company</th>
+                <th>Chart (24h)</th>
                 <th>Last Price</th>
                 <th>Change</th>
                 <th>Market Cap</th>
                 <th>Volume</th>
-                <th></th>
             </tr>
         </thead>
         <tbody>
             {% for stock in stocks %}
-            <tr>
-                <td><strong>{{ stock.ticker }}</strong></td>
+            <tr class="stock-row clickable-row" data-stock-id="{{ stock.id }}" onclick="window.location.href='{{ url_for('market.stock_detail', stock_id=stock.id) }}'">
+                <td>
+                    <strong class="text-primary">{{ stock.ticker }}</strong>
+                </td>
                 <td>{{ stock.company }}</td>
                 <td>
-                    <span data-stock-id="{{ stock.id }}">
+                    <!-- Mini Chart -->
+                    <div class="mini-chart-container" style="width: 120px; height: 60px;">
+                        <canvas id="mini-chart-{{ stock.id }}" style="width: 120px; height: 60px;"></canvas>
+                    </div>
+                </td>
+                <td>
+                    <span class="fw-bold" data-price-display="{{ stock.id }}">
                         {% if stock.prices_live %}
-                            ${{ "%.2f"|format(stock.prices_live.last_price) }}
+                            ${{ "%.4f"|format(stock.prices_live.last_price) }}
                         {% else %}
-                            ${{ "%.2f"|format(stock.initial_price) }}
+                            ${{ "%.4f"|format(stock.initial_price) }}
                         {% endif %}
                     </span>
                 </td>
@@ -41,19 +50,16 @@
                     {% if stock.prices_live %}
                         {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
                         {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
-                        <span class="{% if change > 0 %}text-success{% elif change < 0 %}text-danger{% endif %}">
-                            {{ "+$%.2f"|format(change) if change >= 0 else "$%.2f"|format(change) }}
-                            ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
+                        <span class="{% if change > 0 %}text-success{% elif change < 0 %}text-danger{% else %}text-muted{% endif %}">
+                            {{ "+$%.4f"|format(change) if change >= 0 else "$%.4f"|format(change) }}<br>
+                            <small>({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})</small>
                         </span>
                     {% else %}
                         <span class="text-muted">--</span>
                     {% endif %}
                 </td>
-                <td>${{ "{:,.0f}".format(stock.get_market_cap()) }}</td>
+                <td>${{ "{:,.0f}".format(stock.get_market_cap()|float) }}</td>
                 <td>{{ "{:,}".format(stock.float_shares) }}</td>
-                <td>
-                    <a href="{{ url_for('market.stock_detail', stock_id=stock.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
-                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -69,22 +75,213 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
 <script>
+const miniCharts = {};
+
+// Initialize mini charts for all stocks
+document.addEventListener('DOMContentLoaded', function() {
+    {% for stock in stocks %}
+    loadMiniChart({{ stock.id }});
+    {% endfor %}
+
     // Real-time price updates
-    if (document.querySelector('[data-stock-id]')) {
+    if (document.querySelector('[data-price-display]')) {
         setInterval(function() {
             fetch('/market/prices')
                 .then(response => response.json())
                 .then(data => {
-                    document.querySelectorAll('[data-stock-id]').forEach(element => {
-                        const stockId = element.dataset.stockId;
+                    document.querySelectorAll('[data-price-display]').forEach(element => {
+                        const stockId = element.dataset.priceDisplay;
                         if (data[stockId]) {
-                            element.textContent = '$' + parseFloat(data[stockId].last_price).toFixed(2);
+                            element.textContent = '$' + parseFloat(data[stockId].last_price).toFixed(4);
                         }
                     });
                 })
                 .catch(error => console.log('Price update failed:', error));
         }, 5000);
     }
+});
+
+function loadMiniChart(stockId) {
+    const canvas = document.getElementById(`mini-chart-${stockId}`);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    // Fetch recent candle data (last 24 hours, 1h intervals)
+    fetch(`/market/api/stock/${stockId}/candles?interval=1h&limit=24`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error || !data.data || data.data.length === 0) {
+                // No data available, show simple placeholder
+                showMiniChartPlaceholder(ctx, stockId);
+                return;
+            }
+
+            renderMiniChart(ctx, data, stockId);
+        })
+        .catch(error => {
+            console.log(`Mini chart failed for stock ${stockId}:`, error);
+            showMiniChartPlaceholder(ctx, stockId);
+        });
+}
+
+function renderMiniChart(ctx, data, stockId) {
+    // Simple line chart for price movement
+    const prices = data.data.map(candle => candle.close);
+    const timestamps = data.data.map(candle => new Date(candle.x));
+
+    // Determine trend color
+    const firstPrice = prices[0];
+    const lastPrice = prices[prices.length - 1];
+    const trendColor = lastPrice >= firstPrice ? '#26a69a' : '#ef5350';
+
+    miniCharts[stockId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: timestamps,
+            datasets: [{
+                data: prices,
+                borderColor: trendColor,
+                backgroundColor: `${trendColor}15`,
+                borderWidth: 1.5,
+                fill: true,
+                tension: 0.2,
+                pointRadius: 0,
+                pointHoverRadius: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            layout: {
+                padding: 2
+            },
+            scales: {
+                x: {
+                    display: false,
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    display: false,
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: true,
+                    external: false,
+                    bodyFont: {
+                        size: 11
+                    },
+                    titleFont: {
+                        size: 11
+                    },
+                    cornerRadius: 4,
+                    callbacks: {
+                        title: function(context) {
+                            return new Date(context[0].label).toLocaleDateString() + ' ' +
+                                   new Date(context[0].label).toLocaleTimeString();
+                        },
+                        label: function(context) {
+                            return `$${context.parsed.y.toFixed(4)}`;
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    hoverRadius: 4
+                }
+            },
+            animation: {
+                duration: 300
+            }
+        }
+    });
+}
+
+function showMiniChartPlaceholder(ctx, stockId) {
+    // Draw a simple placeholder when no data is available
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    ctx.fillStyle = '#6c757d';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('No chart data', ctx.canvas.width / 2, ctx.canvas.height / 2);
+    ctx.fillText('available yet', ctx.canvas.width / 2, ctx.canvas.height / 2 + 15);
+}
 </script>
+
+<style>
+.stock-row {
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: rgba(0, 123, 255, 0.08) !important;
+    transform: translateY(-1px);
+}
+
+.clickable-row:active {
+    transform: translateY(0);
+    background-color: rgba(0, 123, 255, 0.12) !important;
+}
+
+.mini-chart-container {
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 3px;
+    background: #f8f9fa;
+    margin: 0;
+    pointer-events: none; /* Prevent chart from interfering with row click */
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.fw-bold {
+    font-weight: 600 !important;
+}
+
+.text-primary {
+    color: #007bff !important;
+    font-weight: 600;
+}
+
+/* Compact table styling */
+.table > :not(caption) > * > * {
+    padding: 0.75rem 0.5rem;
+}
+
+.table thead th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Add visual indication that rows are clickable */
+.table tbody tr:hover {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
 {% endblock %}
