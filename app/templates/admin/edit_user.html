@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - {{ user.email }} - ZEBRAT TRADING{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Edit User: {{ user.email }}</h2>
+            <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-secondary">← Back to User</a>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control") }}
+                        {% for error in form.email.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.role.label(class="form-label") }}
+                        {{ form.role(class="form-select") }}
+                        {% for error in form.role.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">
+                            <i class="fa fa-exclamation-triangle text-warning"></i>
+                            Be careful when changing user roles. Admin users have full system access.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_active(class="form-check-input") }}
+                            {{ form.is_active.label(class="form-check-label") }}
+                        </div>
+                        <div class="form-text">
+                            Inactive users cannot log in to the system.
+                        </div>
+                        {% for error in form.is_active.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h6>Current User Information:</h6>
+                        <ul class="mb-0">
+                            <li><strong>User ID:</strong> {{ user.id }}</li>
+                            <li><strong>Created:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+                            <li><strong>Cash Balance:</strong> ${{ "{:,.2f}".format(user.get_cash_balance()) }}</li>
+                            {% if user.id == current_user.id %}
+                                <li class="text-warning"><strong>Note:</strong> You are editing your own account!</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

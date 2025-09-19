@@ -3,9 +3,15 @@
 {% block title %}Admin Dashboard - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
+<div class="admin-dashboard">
 <div class="row mb-4">
     <div class="col-12">
-        <h2>Admin Dashboard</h2>
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Admin Dashboard <span class="pulse-dot"></span></h2>
+            <div class="text-muted small">
+                <i class="fa fa-clock"></i> Auto-refresh in <span id="countdown">30</span>s
+            </div>
+        </div>
     </div>
 </div>
 
@@ -57,8 +63,83 @@
                         <p class="text-muted mb-0">Active Stocks</p>
                     </div>
                     <div class="col-6">
-                        <h3>—</h3>
-                        <p class="text-muted mb-0">Queue Depth</p>
+                        <h3>{{ stats.pending_orders }}</h3>
+                        <p class="text-muted mb-0">Pending Orders</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced Statistics Row -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <a href="{{ url_for('admin.users') }}" class="text-decoration-none">
+            <div class="card bg-primary text-white clickable-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="mb-0">{{ stats.total_users }}</h4>
+                            <small>Total Users</small>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fa fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small><i class="fa fa-check-circle"></i> {{ stats.active_users }} Active</small>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ stats.total_orders }}</h4>
+                        <small>Total Orders</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fa fa-shopping-cart fa-2x"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small><i class="fa fa-clock"></i> {{ stats.pending_orders }} Pending</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">{{ stats.total_trades }}</h4>
+                        <small>Executed Trades</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fa fa-chart-line fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0">${{ "{:,.0f}".format(stats.total_cash) }}</h4>
+                        <small>Total Cash</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fa fa-dollar-sign fa-2x"></i>
                     </div>
                 </div>
             </div>
@@ -96,20 +177,114 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">System Status</h5>
+                <h5 class="mb-0">User Management</h5>
             </div>
             <div class="card-body">
-                <p>Monitor system health and logs.</p>
+                <p>Manage users, passwords, and permissions.</p>
                 <div class="d-grid gap-2">
-                    <a href="#" class="btn btn-primary disabled">Audit Logs</a>
-                    <a href="#" class="btn btn-outline-primary disabled">System Health</a>
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-primary">View All Users</a>
+                    <small class="text-muted mt-2">
+                        <i class="fa fa-info-circle"></i> Click on any user to view details, reset passwords, or modify permissions.
+                    </small>
                 </div>
             </div>
         </div>
     </div>
 </div>
+</div>
+
+<style>
+.clickable-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.clickable-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.stat-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.admin-dashboard .card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.admin-dashboard .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+.pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #28a745;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+</style>
+
+<script>
+// Countdown and auto-refresh functionality
+let countdown = 30;
+const countdownElement = document.getElementById('countdown');
+
+function updateCountdown() {
+    countdown--;
+    if (countdownElement) {
+        countdownElement.textContent = countdown;
+    }
+
+    if (countdown <= 0) {
+        location.reload();
+    }
+}
+
+// Update countdown every second
+setInterval(updateCountdown, 1000);
+
+// Add click effects to cards
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.stat-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+
+    // Add hover effects to clickable cards
+    const clickableCards = document.querySelectorAll('.clickable-card');
+    clickableCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Add a little click animation
+            this.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
+    });
+});
+</script>
+
 {% endblock %}

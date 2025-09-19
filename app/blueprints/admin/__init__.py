@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
-from wtforms import StringField, DecimalField, IntegerField, BooleanField, SubmitField, DateField, TimeField
-from wtforms.validators import DataRequired, NumberRange, Length
+from wtforms import StringField, DecimalField, IntegerField, BooleanField, SubmitField, DateField, TimeField, PasswordField, SelectField
+from wtforms.validators import DataRequired, NumberRange, Length, Email, Optional
 from functools import wraps
 from app import db
-from app.models import Stock, PriceLive, MarketHours, MarketCalendar, MarketState, AuditLog, UserRole
+from app.models import Stock, PriceLive, MarketHours, MarketCalendar, MarketState, AuditLog, UserRole, User, Order, Trade, CashLedger
 from decimal import Decimal
 
 bp = Blueprint('admin', __name__)
@@ -37,13 +37,48 @@ class HolidayForm(FlaskForm):
     name = StringField('Holiday Name', validators=[DataRequired(), Length(max=255)])
     submit = SubmitField('Add Holiday')
 
+class PasswordResetForm(FlaskForm):
+    new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), Length(min=6)])
+    submit = SubmitField('Reset Password')
+
+class UserEditForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    role = SelectField('Role', choices=[(UserRole.CUSTOMER.value, 'Customer'), (UserRole.ADMIN.value, 'Admin')], validators=[DataRequired()])
+    is_active = BooleanField('Active')
+    submit = SubmitField('Update User')
+
 @bp.route('/')
 @login_required
 @admin_required
 def index():
     market_state = MarketState.get_current()
     stock_count = Stock.query.filter_by(is_active=True).count()
-    return render_template('admin/index.html', market_state=market_state, stock_count=stock_count)
+
+    # User statistics
+    total_users = User.query.count()
+    active_users = User.query.filter_by(is_active=True).count()
+    admin_users = User.query.filter_by(role=UserRole.ADMIN).count()
+
+    # Trading statistics
+    total_orders = Order.query.count()
+    pending_orders = Order.query.filter_by(status='queued').count()
+    total_trades = Trade.query.count()
+
+    # Calculate total cash in system
+    total_cash = db.session.query(db.func.sum(CashLedger.amount)).scalar() or 0
+
+    stats = {
+        'total_users': total_users,
+        'active_users': active_users,
+        'admin_users': admin_users,
+        'total_orders': total_orders,
+        'pending_orders': pending_orders,
+        'total_trades': total_trades,
+        'total_cash': float(total_cash)
+    }
+
+    return render_template('admin/index.html', market_state=market_state, stock_count=stock_count, stats=stats)
 
 @bp.route('/stocks')
 @login_required
@@ -202,3 +237,81 @@ def toggle_market():
 
     flash(f'Market {"opened" if new_state else "closed"}', 'success')
     return redirect(url_for('admin.index'))
+
+@bp.route('/users')
+@login_required
+@admin_required
+def users():
+    page = request.args.get('page', 1, type=int)
+    users = User.query.order_by(User.created_at.desc()).paginate(
+        page=page, per_page=20, error_out=False
+    )
+    return render_template('admin/users.html', users=users)
+
+@bp.route('/users/<int:user_id>')
+@login_required
+@admin_required
+def user_detail(user_id):
+    user = User.query.get_or_404(user_id)
+
+    # Get user's recent orders
+    recent_orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).limit(10).all()
+
+    # Get user's positions
+    positions = user.positions
+
+    # Calculate total portfolio value
+    cash_balance = user.get_cash_balance()
+    portfolio_value = float(cash_balance)
+    for position in positions:
+        if position.quantity > 0:
+            price_live = PriceLive.query.filter_by(stock_id=position.stock_id).first()
+            if price_live:
+                portfolio_value += float(price_live.last_price) * position.quantity
+            else:
+                portfolio_value += float(position.stock.initial_price) * position.quantity
+
+    return render_template('admin/user_detail.html', user=user, recent_orders=recent_orders,
+                         positions=positions, cash_balance=cash_balance, portfolio_value=portfolio_value)
+
+@bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+    form = UserEditForm(obj=user)
+
+    if form.validate_on_submit():
+        user.email = form.email.data
+        user.role = UserRole(form.role.data)
+        user.is_active = form.is_active.data
+        db.session.commit()
+
+        AuditLog.create(current_user.id, 'update_user', 'user', user.id, f'Updated user {user.email}')
+
+        flash(f'User {user.email} updated successfully', 'success')
+        return redirect(url_for('admin.user_detail', user_id=user.id))
+
+    return render_template('admin/edit_user.html', form=form, user=user)
+
+@bp.route('/users/<int:user_id>/reset-password', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def reset_user_password(user_id):
+    user = User.query.get_or_404(user_id)
+    form = PasswordResetForm()
+
+    if form.validate_on_submit():
+        if form.new_password.data != form.confirm_password.data:
+            flash('Passwords do not match', 'error')
+            return render_template('admin/reset_password.html', form=form, user=user)
+
+        user.set_password(form.new_password.data)
+        db.session.commit()
+
+        AuditLog.create(current_user.id, 'reset_password', 'user', user.id, f'Reset password for user {user.email}')
+
+        flash(f'Password reset successfully for {user.email}', 'success')
+        return redirect(url_for('admin.user_detail', user_id=user.id))
+
+    return render_template('admin/reset_password.html', form=form, user=user)

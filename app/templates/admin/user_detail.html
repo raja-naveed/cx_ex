@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.email }} - User Details - ZEBRAT TRADING{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>{{ user.email }}</h2>
+            <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">← Back to Users</a>
+        </div>
+    </div>
+</div>
+
+<!-- User Info Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4>${{ "{:,.2f}".format(cash_balance) }}</h4>
+                <small>Cash Balance</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4>${{ "{:,.2f}".format(portfolio_value) }}</h4>
+                <small>Total Portfolio Value</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4>{{ positions|length }}</h4>
+                <small>Stock Positions</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body text-center">
+                <h4>{{ recent_orders|length }}</h4>
+                <small>Recent Orders</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Information -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">User Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>User ID:</strong></td>
+                        <td>{{ user.id }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>{{ user.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Role:</strong></td>
+                        <td>
+                            <span class="badge bg-{{ 'danger' if user.role.value == 'admin' else 'primary' }}">
+                                {{ user.role.value.title() }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Status:</strong></td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if user.is_active else 'secondary' }}">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Created:</strong></td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    </tr>
+                </table>
+
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-primary">
+                        <i class="fa fa-edit"></i> Edit User
+                    </a>
+                    <a href="{{ url_for('admin.reset_user_password', user_id=user.id) }}" class="btn btn-warning">
+                        <i class="fa fa-key"></i> Reset Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Positions -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Current Positions</h5>
+            </div>
+            <div class="card-body">
+                {% if positions %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Stock</th>
+                                <th>Quantity</th>
+                                <th>Avg Cost</th>
+                                <th>Current Price</th>
+                                <th>Market Value</th>
+                                <th>P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for position in positions %}
+                            {% if position.quantity > 0 %}
+                            <tr>
+                                <td><strong>{{ position.stock.ticker }}</strong></td>
+                                <td>{{ position.quantity }}</td>
+                                <td>${{ "{:.4f}".format(position.average_cost) if position.average_cost else '--' }}</td>
+                                <td>
+                                    {% set price_live = position.stock.prices_live %}
+                                    {% if price_live %}
+                                        ${{ "{:.4f}".format(price_live.last_price) }}
+                                    {% else %}
+                                        ${{ "{:.4f}".format(position.stock.initial_price) }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set current_price = price_live.last_price if price_live else position.stock.initial_price %}
+                                    ${{ "{:,.2f}".format(current_price * position.quantity) }}
+                                </td>
+                                <td>
+                                    {% if position.average_cost %}
+                                        {% set pnl = (current_price - position.average_cost) * position.quantity %}
+                                        <span class="text-{{ 'success' if pnl >= 0 else 'danger' }}">
+                                            ${{ "{:,.2f}".format(pnl) }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">--</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No current positions</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Orders -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Orders (Last 10)</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Stock</th>
+                                <th>Side</th>
+                                <th>Quantity</th>
+                                <th>Status</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>{{ order.created_at.strftime('%m/%d %H:%M') }}</td>
+                                <td><strong>{{ order.stock.ticker }}</strong></td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if order.side.value == 'buy' else 'danger' }}">
+                                        {{ order.side.value.upper() }}
+                                    </span>
+                                </td>
+                                <td>{{ order.quantity }}</td>
+                                <td>
+                                    <span class="badge bg-{{
+                                        'success' if order.status.value == 'executed'
+                                        else 'warning' if order.status.value == 'queued'
+                                        else 'danger' if order.status.value == 'canceled'
+                                        else 'secondary'
+                                    }}">
+                                        {{ order.status.value.upper() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if order.executed_price %}
+                                        ${{ "{:.4f}".format(order.executed_price) }}
+                                    {% else %}
+                                        <span class="text-muted">Market</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if order.executed_price %}
+                                        ${{ "{:,.2f}".format(order.executed_price * order.quantity) }}
+                                    {% else %}
+                                        <span class="text-muted">--</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No recent orders</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
