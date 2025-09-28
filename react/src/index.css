@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* Dark Mode CSS Variables for ZEBRAT TRADING */
+:root {
+  /* Primary Colors - Green accent for fintech */
+  --color-primary-50: #0A0F14;
+  --color-primary-100: #0F1720;
+  --color-primary-200: #111827;
+  --color-primary-300: #1F2937;
+  --color-primary-400: #374151;
+  --color-primary-500: #4B5563;
+  --color-primary-600: #6B7280;
+  --color-primary-700: #9CA3AF;
+  --color-primary-800: #D1D5DB;
+  --color-primary-900: #E5E7EB;
+
+  /* Brand Colors - Green accent */
+  --color-brand-50: #0A0F14;
+  --color-brand-100: #0F1720;
+  --color-brand-200: #111827;
+  --color-brand-300: #1F2937;
+  --color-brand-400: #374151;
+  --color-brand-500: #4B5563;
+  --color-brand-600: #6B7280;
+  --color-brand-700: #9CA3AF;
+  --color-brand-800: #D1D5DB;
+  --color-brand-900: #E5E7EB;
+
+  /* Success Colors - Green for positive actions */
+  --color-success-50: #0A0F14;
+  --color-success-100: #0F1720;
+  --color-success-200: #111827;
+  --color-success-300: #1F2937;
+  --color-success-400: #374151;
+  --color-success-500: #4B5563;
+  --color-success-600: #6B7280;
+  --color-success-700: #9CA3AF;
+  --color-success-800: #D1D5DB;
+  --color-success-900: #E5E7EB;
+
+  /* Warning Colors - Amber for warnings */
+  --color-warning-50: #0A0F14;
+  --color-warning-100: #0F1720;
+  --color-warning-200: #111827;
+  --color-warning-300: #1F2937;
+  --color-warning-400: #374151;
+  --color-warning-500: #4B5563;
+  --color-warning-600: #6B7280;
+  --color-warning-700: #9CA3AF;
+  --color-warning-800: #D1D5DB;
+  --color-warning-900: #E5E7EB;
+
+  /* Danger Colors - Red for errors */
+  --color-danger-50: #0A0F14;
+  --color-danger-100: #0F1720;
+  --color-danger-200: #111827;
+  --color-danger-300: #1F2937;
+  --color-danger-400: #374151;
+  --color-danger-500: #4B5563;
+  --color-danger-600: #6B7280;
+  --color-danger-700: #9CA3AF;
+  --color-danger-800: #D1D5DB;
+  --color-danger-900: #E5E7EB;
+
+  /* Brand Gradient - Green fintech gradient */
+  --gradient-brand: linear-gradient(135deg, #00D4AA 0%, #00B894 50%, #00A085 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Focus styles */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #86EFAC;
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
