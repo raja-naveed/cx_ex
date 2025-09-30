@@ -2,6 +2,58 @@
 
 A comprehensive Flask-based trading simulator with real-time price simulation, portfolio management, and administrative controls.
 
+## 📊 **Application Overview**
+
+- **Total Pages**: 25 pages
+- **Total Templates**: 21 template files
+- **Status**: ✅ **RUNNING** on http://localhost:5000
+- **Database**: SQLite with sample data (150 stocks, 2 users)
+
+## 🌐 **Complete Pages List**
+
+### **Public Pages (3)**
+1. **Homepage** (`/`) - Main landing page ✅ **COMPLETED** - Modern dark theme with emerald accents, hero section, features grid, and trading preview
+2. **Market Stocks** (`/market/stocks`) - Interactive stock listing with charts
+3. **Stock Detail** (`/market/stock/<id>`) - Individual stock details
+
+### **Authentication (3)**
+4. **Login** (`/auth/login`) - User login form
+5. **Register** (`/auth/register`) - User registration form
+6. **Logout** (`/auth/logout`) - User logout
+
+### **Trading (2)**
+7. **Orders** (`/trading/orders`) - Order history and status
+8. **Place Order** (`/trading/place-order`) - Buy/sell order form
+
+### **Portfolio (2)**
+9. **Portfolio Overview** (`/portfolio/`) - Portfolio summary with P&L
+10. **Trade History** (`/portfolio/history`) - Complete trading history
+
+### **Cash Management (3)**
+11. **Cash Dashboard** (`/cash/`) - Cash balance and transactions
+12. **Deposit** (`/cash/deposit`) - Deposit funds form
+13. **Withdraw** (`/cash/withdraw`) - Withdraw funds form
+
+### **Admin Interface (12)**
+14. **Admin Dashboard** (`/admin/`) - Admin dashboard with statistics
+15. **Stocks Management** (`/admin/stocks`) - Manage all stocks
+16. **Create Stock** (`/admin/stocks/create`) - Add new stocks
+17. **Edit Stock** (`/admin/stocks/<id>/edit`) - Edit existing stocks
+18. **Users Management** (`/admin/users`) - User list with pagination
+19. **User Detail** (`/admin/users/<id>`) - Individual user details
+20. **Edit User** (`/admin/users/<id>/edit`) - Edit user details
+21. **Reset Password** (`/admin/users/<id>/reset-password`) - Password reset
+22. **Market Hours** (`/admin/market-hours`) - Trading hours config
+23. **Edit Market Hours** (`/admin/market-hours/<day>/edit`) - Edit daily hours
+24. **Holidays** (`/admin/holidays`) - Holiday calendar
+25. **Add Holiday** (`/admin/holidays/add`) - Add market holidays
+
+### **Quick Access**
+- **Admin**: admin@example.com / admin123
+- **Demo**: demo@example.com / demo123
+
+> 📋 **Detailed page list**: See [PAGES_LIST.md](PAGES_LIST.md) for complete documentation
+
 ## Features
 
 ### Core Trading System

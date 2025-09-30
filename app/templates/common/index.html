@@ -1,48 +1,891 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="jumbotron bg-light p-5 rounded">
-            <h1 class="display-4">ZEBRAT TRADING</h1>
-            <p class="lead">Practice trading with virtual money in a realistic market environment.</p>
-            <hr class="my-4">
-            <p>This is a simulated trading platform for educational purposes only. No real money is involved.</p>
-            {% if not current_user.is_authenticated %}
-                <a class="btn btn-primary btn-lg me-2" href="{{ url_for('auth.register') }}" role="button">Get Started</a>
-                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('market.stocks') }}" role="button">View Market</a>
-            {% else %}
-                <a class="btn btn-primary btn-lg me-2" href="{{ url_for('market.stocks') }}" role="button">Start Trading</a>
-                <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('portfolio.index') }}" role="button">View Portfolio</a>
-            {% endif %}
-        </div>
-    </div>
-</div>
+{% block title %}ZEBRAT TRADING - Practice Trading Platform{% endblock %}
 
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Real-Time Prices</h5>
-                <p class="card-text">Experience live market simulation with prices that update every few seconds during market hours.</p>
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-background">
+        <div class="hero-pattern"></div>
+    </div>
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1 class="hero-title">
+                Meet your <span class="text-emerald-400">active trading</span> ecosystem.
+            </h1>
+            <p class="hero-subtitle">
+                Practice trading with virtual money in a realistic market environment. 
+                Learn, simulate, and build confidence without financial risk.
+            </p>
+            <div class="hero-buttons">
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket mr-2"></i>
+                        Get Started Free
+                    </a>
+                    <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        View Market
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('market.stocks') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Start Trading
+                    </a>
+                    <a href="{{ url_for('portfolio.index') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-briefcase mr-2"></i>
+                        View Portfolio
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="trading-preview">
+                <div class="preview-header">
+                    <div class="preview-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <span class="preview-title">ZEBRAT TRADING</span>
+                </div>
+                <div class="preview-content">
+                    <div class="portfolio-display">
+                        <div class="portfolio-value">$12,345.67</div>
+                        <div class="portfolio-change price-up">+$234.56 (1.96%)</div>
+                    </div>
+                    <div class="chart-preview">
+                        <div class="chart-line"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Portfolio Tracking</h5>
-                <p class="card-text">Monitor your positions, track P&L, and analyze your trading performance over time.</p>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="section-header">
+        <h2 class="section-title">Intuitive trading tools</h2>
+        <p class="section-subtitle">
+            Everything you need to practice trading and improve your skills in a risk-free environment.
+        </p>
+    </div>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
             </div>
+            <h3 class="feature-title">Real-Time Prices</h3>
+            <p class="feature-description">
+                Experience live market simulation with prices that update every few seconds during market hours.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-briefcase"></i>
+            </div>
+            <h3 class="feature-title">Portfolio Tracking</h3>
+            <p class="feature-description">
+                Monitor your positions, track P&L, and analyze your trading performance over time.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <h3 class="feature-title">Market Orders</h3>
+            <p class="feature-description">
+                Place buy and sell orders that execute at current market prices when the market is open.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="feature-title">Risk-Free Learning</h3>
+            <p class="feature-description">
+                Practice trading strategies without financial risk. Perfect for beginners and experienced traders.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 class="feature-title">Market Hours</h3>
+            <p class="feature-description">
+                Trade during realistic market hours with proper open/close schedules and holiday calendars.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3 class="feature-title">Advanced Charts</h3>
+            <p class="feature-description">
+                Professional candlestick charts with multiple timeframes and technical indicators.
+            </p>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Market Orders</h5>
-                <p class="card-text">Place buy and sell orders that execute at current market prices when the market is open.</p>
-            </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number">150+</div>
+            <div class="stat-label">Tradeable Stocks</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Market Simulation</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">$0</div>
+            <div class="stat-label">Risk Involved</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Educational</div>
         </div>
     </div>
-</div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="cta-content">
+        <h2 class="cta-title">Ready to start your trading journey?</h2>
+        <p class="cta-subtitle">
+            Join thousands of learners who are improving their trading skills with ZEBRAT TRADING.
+        </p>
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-user-plus mr-2"></i>
+                Create Free Account
+            </a>
+        {% else %}
+            <a href="{{ url_for('market.stocks') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-chart-line mr-2"></i>
+                Start Trading Now
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Disclaimer -->
+<section class="disclaimer-section">
+    <div class="disclaimer-content">
+        <p class="disclaimer-text">
+            <i class="fas fa-info-circle mr-2"></i>
+            This is a simulated trading platform for educational purposes only. No real money is involved. 
+            All trades are virtual and for learning purposes.
+        </p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* Homepage Specific Styles */
+.hero-section {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 80px 0 120px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+}
+
+.hero-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 30%, rgba(16, 185, 129, 0.02) 50%, transparent 70%);
+    animation: float 25s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+.hero-title .text-emerald-400 {
+    color: #10b981;
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: #d1d5db;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+    font-weight: 400;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.hero-buttons .btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-buttons .btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    border: none;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.hero-buttons .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.hero-buttons .btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #374151;
+    backdrop-filter: blur(10px);
+}
+
+.hero-buttons .btn-secondary:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Trading Preview */
+.hero-visual {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.trading-preview {
+    background: linear-gradient(145deg, #111827 0%, #1f2937 100%);
+    border: 1px solid #374151;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(16, 185, 129, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    overflow: hidden;
+}
+
+.trading-preview::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #374151;
+}
+
+.preview-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.preview-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #6b7280;
+    transition: background 0.3s ease;
+}
+
+.preview-dots span:first-child {
+    background: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.preview-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: 0.05em;
+}
+
+.portfolio-display {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.portfolio-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.portfolio-change {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #10b981;
+}
+
+.chart-preview {
+    height: 140px;
+    background: linear-gradient(145deg, #0f1720 0%, #1f2937 100%);
+    border-radius: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #374151;
+}
+
+.chart-preview::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.chart-line {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    right: 20px;
+    height: 3px;
+    background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+    border-radius: 2px;
+    animation: chartPulse 4s ease-in-out infinite;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
+
+.chart-line::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 16px;
+    height: 16px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+@keyframes chartPulse {
+    0%, 100% { 
+        opacity: 0.8; 
+        transform: scaleY(1);
+    }
+    50% { 
+        opacity: 1; 
+        transform: scaleY(1.1);
+    }
+}
+
+/* Features Section */
+.features-section {
+    padding: 6rem 0;
+    background: linear-gradient(180deg, #111827 0%, #0f1720 100%);
+    position: relative;
+}
+
+.features-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+    padding: 0 2rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.section-subtitle {
+    font-size: 1.125rem;
+    color: #9ca3af;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.feature-card {
+    background: linear-gradient(145deg, #000000 0%, #111827 100%);
+    border: 1px solid #374151;
+    border-radius: 1.5rem;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.feature-card:hover {
+    border-color: #10b981;
+    transform: translateY(-8px);
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(16, 185, 129, 0.2);
+}
+
+.feature-card:hover::before {
+    opacity: 1;
+}
+
+.feature-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.feature-icon i {
+    font-size: 28px;
+    color: #000000;
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.feature-description {
+    color: #9ca3af;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* Stats Section */
+.stats-section {
+    padding: 6rem 0;
+    background: #000000;
+    position: relative;
+}
+
+.stats-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.2), transparent);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.stat-item {
+    text-align: center;
+    position: relative;
+}
+
+.stat-item::after {
+    content: '';
+    position: absolute;
+    bottom: -1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #10b981, transparent);
+    opacity: 0.5;
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #10b981;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #9ca3af;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+/* CTA Section */
+.cta-section {
+    padding: 6rem 0;
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 25% 25%, rgba(0, 0, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(0, 0, 0, 0.05) 0%, transparent 50%);
+}
+
+.cta-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.cta-subtitle {
+    font-size: 1.125rem;
+    color: rgba(0, 0, 0, 0.8);
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+}
+
+.cta-section .btn {
+    background: #000000;
+    color: #ffffff;
+    padding: 1.25rem 3rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.cta-section .btn:hover {
+    background: #1f2937;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+}
+
+/* Disclaimer Section */
+.disclaimer-section {
+    padding: 2rem 0;
+    background: #111827;
+    border-top: 1px solid #374151;
+}
+
+.disclaimer-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    text-align: center;
+}
+
+.disclaimer-text {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .trading-preview {
+        max-width: 380px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 60px 0 80px;
+        min-height: 90vh;
+    }
+    
+    .hero-content {
+        padding: 0 1.5rem;
+        gap: 2.5rem;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.125rem;
+    }
+    
+    .hero-buttons {
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-buttons .btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        padding: 0 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .cta-title {
+        font-size: 2rem;
+    }
+    
+    .disclaimer-text {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-title {
+        font-size: 1.75rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+    }
+    
+    .cta-title {
+        font-size: 1.75rem;
+    }
+    
+    .feature-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .trading-preview {
+        padding: 1.5rem;
+    }
+    
+    .portfolio-value {
+        font-size: 2rem;
+    }
+}
+
+/* Additional Trading UI Enhancements */
+.main-content {
+    padding: 0;
+    max-width: none;
+}
+
+.hero-section .hero-buttons .btn i {
+    font-size: 1rem;
+}
+
+.feature-card .feature-icon i {
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon i {
+    transform: scale(1.1);
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Loading animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-section {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.features-section {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.stats-section {
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.cta-section {
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+</style>
 {% endblock %}

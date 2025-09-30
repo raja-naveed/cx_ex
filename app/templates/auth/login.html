@@ -3,39 +3,101 @@
 {% block title %}Login - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="mb-0">Sign In</h3>
+<div class="flex justify-center">
+    <div style="max-width: 400px; width: 100%;">
+        <div class="card animate-slide-up">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h2 class="card-title mb-2">Welcome back</h2>
+                <p class="text-gray-400 text-sm">Practice trading in a risk‑free environment</p>
             </div>
-            <div class="card-body">
-                <form method="POST">
-                    {{ form.hidden_tag() }}
-                    <div class="mb-3">
-                        {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control") }}
-                        {% for error in form.email.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control") }}
-                        {% for error in form.password.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    <div class="d-grid">
-                        {{ form.submit(class="btn btn-primary") }}
-                    </div>
-                </form>
-                <hr>
-                <div class="text-center">
-                    <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
+
+            <!-- Login Form -->
+            <form method="POST" class="space-y-4">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-envelope mr-2"></i>Email Address
+                    </label>
+                    {{ form.email(class="form-control", placeholder="Enter your email address", autocomplete="email", autofocus=true) }}
+                    {% for error in form.email.errors %}
+                        <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock mr-2"></i>Password
+                    </label>
+                    {{ form.password(class="form-control", placeholder="Enter your password", autocomplete="current-password") }}
+                    {% for error in form.password.errors %}
+                        <div class="form-error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="flex items-center justify-between mb-4">
+                    <label class="flex items-center text-sm text-gray-400">
+                        <input type="checkbox" class="mr-2" name="remember">
+                        Remember me
+                    </label>
+                    <a href="#" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+                        Forgot password?
+                    </a>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-700"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-black text-gray-500">Or continue with</span>
+                </div>
+            </div>
+
+            <!-- OAuth Button -->
+            <button type="button" class="btn btn-secondary btn-full" disabled>
+                <i class="fab fa-google mr-2"></i>
+                Continue with Google
+            </button>
+
+            <!-- Register Link -->
+            <div class="text-center mt-6">
+                <p class="text-sm text-gray-400">
+                    Don't have an account? 
+                    <a href="{{ url_for('auth.register') }}" class="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
+                        Create one here
+                    </a>
+                </p>
+            </div>
+
+            <!-- Demo Account Info -->
+            <div class="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
+                <h3 class="text-sm font-medium text-gray-300 mb-2 flex items-center">
+                    <i class="fas fa-bolt mr-2 text-emerald-400"></i>
+                    Demo Account
+                </h3>
+                <p class="text-xs text-gray-400 mb-2">
+                    Try the platform with a demo account:
+                </p>
+                <div class="text-xs text-gray-500 space-y-1">
+                    <div><strong>Email:</strong> demo@example.com</div>
+                    <div><strong>Password:</strong> demo123</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+.space-y-4 > * + * { margin-top: 1rem; }
+.space-y-1 > * + * { margin-top: 0.25rem; }
+</style>
 {% endblock %}
