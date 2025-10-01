@@ -3,20 +3,135 @@
 {% block title %}My Orders - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>My Orders</h2>
-    <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">Place New Order</a>
+<div class="orders-page">
+    <div class="orders-background">
+        <div class="orders-pattern"></div>
+        <div class="orders-grid"></div>
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
+        </div>
+    </div>
+    
+    <div class="orders-container">
+        <!-- Header Section -->
+        <div class="orders-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-list-alt"></i>
+                        My Orders
+                    </h1>
+                    <p class="page-subtitle">Track and manage your trading orders in real-time</p>
+                </div>
+                <div class="header-actions">
+                    <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        <span>Place New Order</span>
+                    </a>
+                    <button class="btn btn-secondary" onclick="refreshOrders()">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Stats -->
+        <div class="orders-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ orders|length if orders else 0 }}</div>
+                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-change positive">All Time</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="pending-orders">{{ orders|selectattr('status.value', 'equalto', 'queued')|list|length if orders else 0 }}</div>
+                    <div class="stat-label">Pending Orders</div>
+                    <div class="stat-change neutral">In Queue</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="completed-orders">{{ orders|selectattr('status.value', 'equalto', 'filled')|list|length if orders else 0 }}</div>
+                    <div class="stat-label">Completed Orders</div>
+                    <div class="stat-change positive">Executed</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="cancelled-orders">{{ orders|selectattr('status.value', 'equalto', 'cancelled')|list|length if orders else 0 }}</div>
+                    <div class="stat-label">Cancelled Orders</div>
+                    <div class="stat-change negative">Cancelled</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Controls -->
+        <div class="orders-controls">
+            <div class="filter-section">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">All Orders</button>
+                    <button class="filter-tab" data-filter="queued">Pending</button>
+                    <button class="filter-tab" data-filter="filled">Completed</button>
+                    <button class="filter-tab" data-filter="cancelled">Cancelled</button>
+                </div>
+            </div>
+            
+            <div class="view-controls">
+                <div class="view-options">
+                    <button class="view-btn active" data-view="table" onclick="setView('table')">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <button class="view-btn" data-view="cards" onclick="setView('cards')">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+                
+                <div class="sort-controls">
+                    <select id="sort-select">
+                        <option value="created_desc">Newest First</option>
+                        <option value="created_asc">Oldest First</option>
+                        <option value="status">By Status</option>
+                        <option value="stock">By Stock</option>
+                    </select>
+                </div>
+            </div>
 </div>
 
+        <!-- Orders Content -->
+        <div class="orders-content">
 {% if orders %}
-<div class="table-responsive">
-    <table class="table table-striped">
-        <thead class="table-dark">
+                <!-- Table View -->
+                <div class="orders-table-view" id="orders-table-view">
+                    <div class="table-wrapper">
+                        <table class="orders-table">
+                            <thead>
             <tr>
                 <th>Order ID</th>
                 <th>Stock</th>
                 <th>Side</th>
                 <th>Quantity</th>
+                                    <th>Price</th>
                 <th>Status</th>
                 <th>Created</th>
                 <th>Actions</th>
@@ -24,46 +139,1302 @@
         </thead>
         <tbody>
             {% for order in orders %}
-            <tr>
-                <td>#{{ order.id }}</td>
-                <td>
-                    <strong>{{ order.stock.ticker }}</strong><br>
-                    <small class="text-muted">{{ order.stock.company }}</small>
+                                <tr class="order-row" data-order-id="{{ order.id }}" data-status="{{ order.status.value }}">
+                                    <td>
+                                        <div class="order-id">
+                                            <span class="id-number">#{{ order.id }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="stock-info">
+                                            <div class="stock-ticker">{{ order.stock.ticker }}</div>
+                                            <div class="stock-company">{{ order.stock.company }}</div>
+                                        </div>
                 </td>
                 <td>
-                    <span class="badge bg-{{ 'success' if order.side.value == 'buy' else 'danger' }}">
+                                        <div class="order-side {{ order.side.value }}">
+                                            <span class="side-badge {{ order.side.value }}">
+                                                <i class="fas fa-arrow-{{ 'up' if order.side.value == 'buy' else 'down' }}"></i>
                         {{ order.side.value.upper() }}
                     </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="order-quantity">
+                                            {{ "{:,}".format(order.quantity) }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="order-price">
+                                            ${{ "%.4f"|format(order.price) if order.price else "Market" }}
+                                        </div>
                 </td>
-                <td>{{ "{:,}".format(order.quantity) }}</td>
-                <td>
-                    <span class="badge order-status-{{ order.status.value }}">
-                        {{ order.status.value.upper() }}
+                                    <td>
+                                        <div class="order-status">
+                                            <span class="status-badge {{ order.status.value }}">
+                                                <span class="status-indicator"></span>
+                                                {{ order.status.value.replace('_', ' ').title() }}
                     </span>
+                                        </div>
                 </td>
                 <td>
-                    {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        <div class="order-date">
+                                            <div class="date">{{ order.created_at.strftime('%Y-%m-%d') }}</div>
+                                            <div class="time">{{ order.created_at.strftime('%H:%M:%S') }}</div>
+                                        </div>
                 </td>
                 <td>
+                                        <div class="order-actions">
                     {% if order.status.value == 'queued' %}
-                        <form method="POST" action="{{ url_for('trading.cancel_order', order_id=order.id) }}" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm btn-outline-danger cancel-order">Cancel</button>
-                        </form>
+                                                <button class="action-btn cancel" onclick="cancelOrder({{ order.id }})">
+                                                    <i class="fas fa-times"></i>
+                                                    <span>Cancel</span>
+                                                </button>
                     {% else %}
-                        <span class="text-muted">—</span>
+                                                <button class="action-btn view" onclick="viewOrderDetails({{ order.id }})">
+                                                    <i class="fas fa-eye"></i>
+                                                    <span>View</span>
+                                                </button>
                     {% endif %}
+                                        </div>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+                    </div>
+                </div>
+
+                <!-- Cards View (Hidden by default) -->
+                <div class="orders-cards-view" id="orders-cards-view" style="display: none;">
+                    <div class="orders-grid">
+                        {% for order in orders %}
+                        <div class="order-card" data-order-id="{{ order.id }}" data-status="{{ order.status.value }}">
+                            <div class="card-header">
+                                <div class="order-id">
+                                    <span class="id-number">#{{ order.id }}</span>
+                                </div>
+                                <div class="order-status">
+                                    <span class="status-badge {{ order.status.value }}">
+                                        <span class="status-indicator"></span>
+                                        {{ order.status.value.replace('_', ' ').title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-content">
+                                <div class="stock-info">
+                                    <div class="stock-ticker">{{ order.stock.ticker }}</div>
+                                    <div class="stock-company">{{ order.stock.company }}</div>
+                                </div>
+                                
+                                <div class="order-details">
+                                    <div class="detail-row">
+                                        <span class="detail-label">Side</span>
+                                        <span class="order-side {{ order.side.value }}">
+                                            <span class="side-badge {{ order.side.value }}">
+                                                <i class="fas fa-arrow-{{ 'up' if order.side.value == 'buy' else 'down' }}"></i>
+                                                {{ order.side.value.upper() }}
+                                            </span>
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="detail-row">
+                                        <span class="detail-label">Quantity</span>
+                                        <span class="detail-value">{{ "{:,}".format(order.quantity) }}</span>
+                                    </div>
+                                    
+                                    <div class="detail-row">
+                                        <span class="detail-label">Price</span>
+                                        <span class="detail-value">${{ "%.4f"|format(order.price) if order.price else "Market" }}</span>
+                                    </div>
+                                    
+                                    <div class="detail-row">
+                                        <span class="detail-label">Created</span>
+                                        <span class="detail-value">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-actions">
+                                {% if order.status.value == 'queued' %}
+                                    <button class="action-btn cancel" onclick="cancelOrder({{ order.id }})">
+                                        <i class="fas fa-times"></i>
+                                        <span>Cancel Order</span>
+                                    </button>
+                                {% else %}
+                                    <button class="action-btn view" onclick="viewOrderDetails({{ order.id }})">
+                                        <i class="fas fa-eye"></i>
+                                        <span>View Details</span>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
 </div>
 {% else %}
-<div class="text-center py-5">
-    <h4 class="text-muted">No orders yet</h4>
-    <p>Place your first order to start trading.</p>
-    <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">Place Order</a>
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                    <h3 class="empty-title">No Orders Yet</h3>
+                    <p class="empty-description">
+                        You haven't placed any orders yet. Start trading by placing your first order.
+                    </p>
+                    <div class="empty-actions">
+                        <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            <span>Place Your First Order</span>
+                        </a>
+                        <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Browse Stocks</span>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
-{% endif %}
+
+<!-- Cancel Order Modal -->
+<div class="modal-overlay" id="cancel-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Cancel Order</h3>
+            <button class="modal-close" onclick="closeCancelModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
+            <div class="order-summary" id="cancel-order-summary">
+                <!-- Order details will be populated here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeCancelModal()">Keep Order</button>
+            <button class="btn btn-danger" id="confirm-cancel-btn">Yes, Cancel Order</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let currentView = 'table';
+let currentFilter = 'all';
+let currentSort = 'created_desc';
+let cancelOrderId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeOrders();
+    setupEventListeners();
+});
+
+function initializeOrders() {
+    // Update order counts
+    updateOrderCounts();
+    
+    // Apply initial filters
+    applyFilters();
+}
+
+function setupEventListeners() {
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            applyFilters();
+        });
+    });
+    
+    // Sort functionality
+    document.getElementById('sort-select').addEventListener('change', function() {
+        currentSort = this.value;
+        sortOrders();
+    });
+}
+
+function setView(view) {
+    currentView = view;
+    
+    // Update view buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    // Show/hide views
+    document.getElementById('orders-table-view').style.display = view === 'table' ? 'block' : 'none';
+    document.getElementById('orders-cards-view').style.display = view === 'cards' ? 'block' : 'none';
+}
+
+function applyFilters() {
+    const orderRows = document.querySelectorAll('.order-row, .order-card');
+    
+    orderRows.forEach(element => {
+        const status = element.dataset.status;
+        let shouldShow = true;
+        
+        if (currentFilter === 'queued') {
+            shouldShow = status === 'queued';
+        } else if (currentFilter === 'filled') {
+            shouldShow = status === 'filled';
+        } else if (currentFilter === 'cancelled') {
+            shouldShow = status === 'cancelled';
+        }
+        // 'all' shows everything
+        
+        element.style.display = shouldShow ? 'block' : 'none';
+    });
+    
+    updateOrderCounts();
+}
+
+function sortOrders() {
+    // Implementation for sorting orders
+    console.log('Sorting orders by:', currentSort);
+    // This would typically involve reordering DOM elements or making an API call
+}
+
+function updateOrderCounts() {
+    const pending = document.querySelectorAll('.order-row[data-status="queued"], .order-card[data-status="queued"]').length;
+    const completed = document.querySelectorAll('.order-row[data-status="filled"], .order-card[data-status="filled"]').length;
+    const cancelled = document.querySelectorAll('.order-row[data-status="cancelled"], .order-card[data-status="cancelled"]').length;
+    
+    document.getElementById('pending-orders').textContent = pending;
+    document.getElementById('completed-orders').textContent = completed;
+    document.getElementById('cancelled-orders').textContent = cancelled;
+}
+
+function cancelOrder(orderId) {
+    cancelOrderId = orderId;
+    
+    // Find order details
+    const orderRow = document.querySelector(`[data-order-id="${orderId}"]`);
+    const ticker = orderRow.querySelector('.stock-ticker').textContent;
+    const side = orderRow.querySelector('.side-badge').textContent.trim();
+    const quantity = orderRow.querySelector('.order-quantity').textContent;
+    const price = orderRow.querySelector('.order-price').textContent;
+    
+    // Populate modal
+    document.getElementById('cancel-order-summary').innerHTML = `
+        <div class="summary-item">
+            <span class="label">Stock:</span>
+            <span class="value">${ticker}</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Side:</span>
+            <span class="value">${side}</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Quantity:</span>
+            <span class="value">${quantity}</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Price:</span>
+            <span class="value">${price}</span>
+        </div>
+    `;
+    
+    // Show modal
+    document.getElementById('cancel-modal').style.display = 'flex';
+    
+    // Setup confirm button
+    document.getElementById('confirm-cancel-btn').onclick = function() {
+        executeCancelOrder(orderId);
+    };
+}
+
+function executeCancelOrder(orderId) {
+    // Create form and submit
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/trading/cancel/${orderId}`;
+    
+    const csrfToken = document.querySelector('meta[name=csrf-token]');
+    if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrf_token';
+        csrfInput.value = csrfToken.content;
+        form.appendChild(csrfInput);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function closeCancelModal() {
+    document.getElementById('cancel-modal').style.display = 'none';
+    cancelOrderId = null;
+}
+
+function viewOrderDetails(orderId) {
+    // Implementation for viewing order details
+    console.log('Viewing order details for:', orderId);
+    // This could open a modal or navigate to a detail page
+}
+
+function refreshOrders() {
+    location.reload();
+}
+
+// Close modal when clicking outside
+document.getElementById('cancel-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCancelModal();
+    }
+});
+</script>
+
+<style>
+/* Enhanced Trading Orders Page Styles */
+.orders-page {
+    min-height: 100vh;
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+    overflow-x: hidden;
+}
+
+.orders-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.orders-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: float 25s ease-in-out infinite;
+}
+
+.orders-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-element {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border-radius: 50%;
+    animation: floatElement 8s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: -5%;
+    animation-delay: 3s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: 6s;
+}
+
+@keyframes floatElement {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg); 
+        opacity: 0.6;
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Orders Container */
+.orders-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Header Section */
+.orders-header {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.page-title i {
+    color: #10b981;
+    font-size: 1.75rem;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: #9ca3af;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #374151;
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Orders Stats */
+.orders-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.stat-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
+}
+
+.stat-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.stat-icon i {
+    font-size: 1.25rem;
+    color: #000000;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+}
+
+.stat-change {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.stat-change.positive {
+    color: #10b981;
+}
+
+.stat-change.neutral {
+    color: #9ca3af;
+}
+
+.stat-change.negative {
+    color: #ef4444;
+}
+
+/* Orders Controls */
+.orders-controls {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.filter-section {
+    margin-bottom: 1.5rem;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}
+
+.filter-tab {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-tab.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.filter-tab:hover:not(.active) {
+    color: #ffffff;
+}
+
+.view-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.view-options {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}
+
+.view-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-btn.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.view-btn:hover:not(.active) {
+    color: #ffffff;
+}
+
+.sort-controls select {
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 0.5rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sort-controls select:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+.sort-controls select option {
+    background: #1f2937;
+    color: #ffffff;
+}
+
+/* Orders Content */
+.orders-content {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+/* Table View */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.orders-table th {
+    background: rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+    font-size: 0.875rem;
+}
+
+.orders-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+    vertical-align: middle;
+}
+
+.order-row {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.order-row:hover {
+    background: rgba(16, 185, 129, 0.05);
+    transform: translateY(-1px);
+}
+
+.id-number {
+    font-weight: 700;
+    color: #10b981;
+    font-size: 1rem;
+}
+
+.stock-ticker {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.stock-company {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.side-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.side-badge.buy {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.side-badge.sell {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.order-quantity {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.order-price {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.status-badge.queued {
+    background: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.status-badge.queued .status-indicator {
+    background: #fbbf24;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.status-badge.filled {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.filled .status-indicator {
+    background: #10b981;
+}
+
+.status-badge.cancelled {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.cancelled .status-indicator {
+    background: #ef4444;
+}
+
+.order-date .date {
+    color: #ffffff;
+    font-weight: 600;
+    margin-bottom: 0.125rem;
+}
+
+.order-date .time {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn.cancel {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+.action-btn.cancel:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
+}
+
+.action-btn.view {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+.action-btn.view:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Cards View */
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.order-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.order-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.order-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.order-card:hover::before {
+    opacity: 1;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.card-content {
+    margin-bottom: 1.5rem;
+}
+
+.order-details {
+    margin-top: 1rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.detail-label {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.card-actions .action-btn {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.empty-icon i {
+    font-size: 2rem;
+    color: #10b981;
+}
+
+.empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.empty-description {
+    font-size: 1rem;
+    color: #9ca3af;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.empty-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.9) 0%, rgba(17, 24, 39, 0.95) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 2rem 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 0.5rem;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.modal-body {
+    padding: 1rem 2rem;
+}
+
+.modal-body p {
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.order-summary {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.summary-item:last-child {
+    margin-bottom: 0;
+}
+
+.summary-item .label {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.summary-item .value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 2rem 2rem;
+    border-top: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.modal-footer .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(239, 68, 68, 0.4);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .orders-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .orders-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .orders-page {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .orders-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .view-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .orders-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .empty-actions {
+        flex-direction: column;
+    }
+    
+    .modal-overlay {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .filter-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .filter-tab {
+        flex: 1;
+        text-align: center;
+    }
+    
+    .orders-table {
+        font-size: 0.875rem;
+    }
+    
+    .orders-table th,
+    .orders-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+</style>
+
 {% endblock %}

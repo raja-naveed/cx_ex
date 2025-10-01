@@ -3,143 +3,1487 @@
 {% block title %}Portfolio - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="portfolio-summary {{ 'negative' if total_equity < 10000 else '' }}">
-            <div class="row">
-                <div class="col-md-3">
-                    <h6>Total Equity</h6>
-                    <h3>${{ "{:,.2f}".format(total_equity) }}</h3>
+<div class="portfolio-page">
+    <div class="portfolio-background">
+        <div class="portfolio-pattern"></div>
+        <div class="portfolio-grid"></div>
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
+        </div>
+    </div>
+    
+    <div class="portfolio-container">
+        <!-- Header Section -->
+        <div class="portfolio-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-pie"></i>
+                        Portfolio Overview
+                    </h1>
+                    <p class="page-subtitle">Track your investments and monitor your trading performance</p>
                 </div>
-                <div class="col-md-3">
-                    <h6>Cash Balance</h6>
-                    <h3>${{ "{:,.2f}".format(cash_balance) }}</h3>
+                <div class="header-actions">
+                    <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        <span>Place Order</span>
+                    </a>
+                    <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Browse Stocks</span>
+                    </a>
                 </div>
-                <div class="col-md-3">
-                    <h6>Market Value</h6>
-                    <h3>${{ "{:,.2f}".format(total_equity - cash_balance) }}</h3>
+            </div>
+        </div>
+
+        <!-- Portfolio Summary Cards -->
+        <div class="portfolio-summary">
+            <div class="summary-grid">
+                <div class="summary-card total-equity">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Total Equity</h3>
+                            <p>Total Portfolio Value</p>
+                        </div>
+                    </div>
+                    <div class="card-value">
+                        <span class="value">${{ "{:,.2f}".format(total_equity) }}</span>
+                        {% set day_pnl = total_equity - 10000 %}
+                        <div class="change {{ 'positive' if day_pnl >= 0 else 'negative' }}">
+                            <i class="fas fa-arrow-{{ 'up' if day_pnl >= 0 else 'down' }}"></i>
+                            <span>
+                                {% if day_pnl >= 0 %}
+                                    +${{ "{:,.2f}".format(day_pnl) }}
+                                {% else %}
+                                    -${{ "{:,.2f}".format(-day_pnl) }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <h6>Day P&L</h6>
-                    {% set day_pnl = total_equity - 10000 %}
-                    <h3 class="{{ 'text-success' if day_pnl >= 0 else 'text-danger' }}">
-                        {% if day_pnl >= 0 %}
-                            +${{ "{:,.2f}".format(day_pnl) }}
+
+                <div class="summary-card cash-balance">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Cash Balance</h3>
+                            <p>Available for Trading</p>
+                        </div>
+                    </div>
+                    <div class="card-value">
+                        <span class="value">${{ "{:,.2f}".format(cash_balance) }}</span>
+                        <div class="change neutral">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Ready to Trade</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-card market-value">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Market Value</h3>
+                            <p>Invested in Stocks</p>
+                        </div>
+                    </div>
+                    <div class="card-value">
+                        <span class="value">${{ "{:,.2f}".format(total_equity - cash_balance) }}</span>
+                        <div class="change neutral">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>{{ positions|length }} Position{{ 's' if positions|length != 1 else '' }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-card day-pnl">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-trending-up"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Day P&L</h3>
+                            <p>Today's Performance</p>
+                        </div>
+                    </div>
+                    <div class="card-value">
+                        <span class="value {{ 'positive' if day_pnl >= 0 else 'negative' }}">
+                            {% if day_pnl >= 0 %}
+                                +${{ "{:,.2f}".format(day_pnl) }}
+                            {% else %}
+                                -${{ "{:,.2f}".format(-day_pnl) }}
+                            {% endif %}
+                        </span>
+                        <div class="change {{ 'positive' if day_pnl >= 0 else 'negative' }}">
+                            <i class="fas fa-percentage"></i>
+                            <span>
+                                {% if total_equity > 0 %}
+                                    {{ "%.2f"|format((day_pnl / 10000) * 100) }}%
+                                {% else %}
+                                    0.00%
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="portfolio-content">
+            <!-- Main Content -->
+            <div class="portfolio-main">
+                <!-- Positions Section -->
+                <div class="positions-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-briefcase"></i>
+                            Current Positions
+                        </h2>
+                        <div class="section-actions">
+                            <div class="view-controls">
+                                <button class="view-btn active" data-view="table" onclick="setView('table')">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                                <button class="view-btn" data-view="cards" onclick="setView('cards')">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if positions %}
+                        <!-- Table View -->
+                        <div class="positions-table-view" id="positions-table-view">
+                            <div class="table-wrapper">
+                                <table class="positions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Stock</th>
+                                            <th>Quantity</th>
+                                            <th>Avg Cost</th>
+                                            <th>Market Price</th>
+                                            <th>Market Value</th>
+                                            <th>Unrealized P&L</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for position in positions %}
+                                        <tr class="position-row">
+                                            <td>
+                                                <div class="stock-info">
+                                                    <div class="stock-ticker">{{ position.stock.ticker }}</div>
+                                                    <div class="stock-company">{{ position.stock.company }}</div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="quantity">{{ "{:,}".format(position.quantity) }}</div>
+                                            </td>
+                                            <td>
+                                                <div class="avg-cost">${{ "%.2f"|format(position.avg_cost) }}</div>
+                                            </td>
+                                            <td data-stock-id="{{ position.stock.id }}">
+                                                <div class="market-price">
+                                                    {% if position.stock.prices_live %}
+                                                        ${{ "%.2f"|format(position.stock.prices_live.last_price) }}
+                                                    {% else %}
+                                                        ${{ "%.2f"|format(position.stock.initial_price) }}
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="market-value">${{ "{:,.2f}".format(position.get_market_value()) }}</div>
+                                            </td>
+                                            <td>
+                                                {% set pnl = position.get_unrealized_pnl() %}
+                                                <div class="pnl {{ 'positive' if pnl >= 0 else 'negative' }}">
+                                                    {% if pnl >= 0 %}
+                                                        +${{ "{:,.2f}".format(pnl) }}
+                                                    {% else %}
+                                                        -${{ "{:,.2f}".format(-pnl) }}
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="position-actions">
+                                                    <a href="{{ url_for('market.stock_detail', id=position.stock.id) }}" class="action-btn view">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ url_for('trading.place_order') }}?stock={{ position.stock.id }}" class="action-btn trade">
+                                                        <i class="fas fa-exchange-alt"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Cards View -->
+                        <div class="positions-cards-view" id="positions-cards-view" style="display: none;">
+                            <div class="positions-grid">
+                                {% for position in positions %}
+                                <div class="position-card">
+                                    <div class="card-header">
+                                        <div class="stock-info">
+                                            <div class="stock-ticker">{{ position.stock.ticker }}</div>
+                                            <div class="stock-company">{{ position.stock.company }}</div>
+                                        </div>
+                                        {% set pnl = position.get_unrealized_pnl() %}
+                                        <div class="pnl-badge {{ 'positive' if pnl >= 0 else 'negative' }}">
+                                            {% if pnl >= 0 %}
+                                                +${{ "{:,.2f}".format(pnl) }}
+                                            {% else %}
+                                                -${{ "{:,.2f}".format(-pnl) }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-content">
+                                        <div class="position-details">
+                                            <div class="detail-row">
+                                                <span class="detail-label">Quantity:</span>
+                                                <span class="detail-value">{{ "{:,}".format(position.quantity) }}</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Avg Cost:</span>
+                                                <span class="detail-value">${{ "%.2f"|format(position.avg_cost) }}</span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Market Price:</span>
+                                                <span class="detail-value">
+                                                    {% if position.stock.prices_live %}
+                                                        ${{ "%.2f"|format(position.stock.prices_live.last_price) }}
+                                                    {% else %}
+                                                        ${{ "%.2f"|format(position.stock.initial_price) }}
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            <div class="detail-row">
+                                                <span class="detail-label">Market Value:</span>
+                                                <span class="detail-value">${{ "{:,.2f}".format(position.get_market_value()) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card-actions">
+                                        <a href="{{ url_for('market.stock_detail', id=position.stock.id) }}" class="action-btn view">
+                                            <i class="fas fa-eye"></i>
+                                            <span>View</span>
+                                        </a>
+                                        <a href="{{ url_for('trading.place_order') }}?stock={{ position.stock.id }}" class="action-btn trade">
+                                            <i class="fas fa-exchange-alt"></i>
+                                            <span>Trade</span>
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h3 class="empty-title">No Positions Yet</h3>
+                            <p class="empty-description">
+                                You haven't invested in any stocks yet. Start building your portfolio by placing your first trade.
+                            </p>
+                            <div class="empty-actions">
+                                <a href="{{ url_for('market.stocks') }}" class="btn btn-primary">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Browse Stocks</span>
+                                </a>
+                                <a href="{{ url_for('trading.place_order') }}" class="btn btn-secondary">
+                                    <i class="fas fa-plus"></i>
+                                    <span>Place Order</span>
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="portfolio-sidebar">
+                <!-- Quick Actions -->
+                <div class="quick-actions-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-bolt"></i>
+                            Quick Actions
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <a href="{{ url_for('trading.place_order') }}" class="quick-action">
+                            <div class="action-icon">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div class="action-info">
+                                <div class="action-title">Place Order</div>
+                                <div class="action-desc">Buy or sell stocks</div>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('trading.orders') }}" class="quick-action">
+                            <div class="action-icon">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <div class="action-info">
+                                <div class="action-title">View Orders</div>
+                                <div class="action-desc">Track your orders</div>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('cash.index') }}" class="quick-action">
+                            <div class="action-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div class="action-info">
+                                <div class="action-title">Manage Cash</div>
+                                <div class="action-desc">Deposit or withdraw</div>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('portfolio.history') }}" class="quick-action">
+                            <div class="action-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div class="action-info">
+                                <div class="action-title">Trade History</div>
+                                <div class="action-desc">View past trades</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Trades -->
+                <div class="recent-trades-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-clock"></i>
+                            Recent Trades
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        {% if recent_trades %}
+                            {% for trade in recent_trades %}
+                            <div class="trade-item">
+                                <div class="trade-info">
+                                    <div class="trade-stock">
+                                        <span class="ticker">{{ trade.stock.ticker }}</span>
+                                        <span class="side {{ trade.side.value }}">
+                                            {{ trade.side.value.upper() }}
+                                        </span>
+                                    </div>
+                                    <div class="trade-details">
+                                        {{ trade.quantity }} @ ${{ "%.2f"|format(trade.price) }}
+                                    </div>
+                                </div>
+                                <div class="trade-time">
+                                    {{ trade.executed_at.strftime('%m/%d %H:%M') }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div class="card-footer">
+                                <a href="{{ url_for('portfolio.history') }}" class="view-all-btn">
+                                    <i class="fas fa-arrow-right"></i>
+                                    <span>View All Trades</span>
+                                </a>
+                            </div>
                         {% else %}
-                            -${{ "{:,.2f}".format(-day_pnl) }}
+                            <div class="empty-trades">
+                                <i class="fas fa-chart-line"></i>
+                                <p>No recent trades</p>
+                            </div>
                         {% endif %}
-                    </h3>
+                    </div>
+                </div>
+
+                <!-- Portfolio Stats -->
+                <div class="portfolio-stats-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-chart-bar"></i>
+                            Portfolio Stats
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Positions:</span>
+                            <span class="stat-value">{{ positions|length }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Trades:</span>
+                            <span class="stat-value">{{ recent_trades|length }}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Portfolio Diversity:</span>
+                            <span class="stat-value">
+                                {% if positions|length > 0 %}
+                                    {{ (100 / positions|length)|round(1) }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Cash Allocation:</span>
+                            <span class="stat-value">
+                                {% if total_equity > 0 %}
+                                    {{ ((cash_balance / total_equity) * 100)|round(1) }}%
+                                {% else %}
+                                    100%
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Current Positions</h5>
-            </div>
-            <div class="card-body">
-                {% if positions %}
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Symbol</th>
-                                <th>Quantity</th>
-                                <th>Avg Cost</th>
-                                <th>Market Price</th>
-                                <th>Market Value</th>
-                                <th>Unrealized P&L</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for position in positions %}
-                            <tr>
-                                <td>
-                                    <strong>{{ position.stock.ticker }}</strong><br>
-                                    <small class="text-muted">{{ position.stock.company }}</small>
-                                </td>
-                                <td>{{ "{:,}".format(position.quantity) }}</td>
-                                <td>${{ "%.2f"|format(position.avg_cost) }}</td>
-                                <td data-stock-id="{{ position.stock.id }}">
-                                    {% if position.stock.prices_live %}
-                                        ${{ "%.2f"|format(position.stock.prices_live.last_price) }}
-                                    {% else %}
-                                        ${{ "%.2f"|format(position.stock.initial_price) }}
-                                    {% endif %}
-                                </td>
-                                <td>${{ "{:,.2f}".format(position.get_market_value()) }}</td>
-                                <td>
-                                    {% set pnl = position.get_unrealized_pnl() %}
-                                    <span class="{{ 'text-success' if pnl >= 0 else 'text-danger' }}">
-                                        {% if pnl >= 0 %}
-                                            +${{ "{:,.2f}".format(pnl) }}
-                                        {% else %}
-                                            -${{ "{:,.2f}".format(-pnl) }}
-                                        {% endif %}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <h6 class="text-muted">No positions</h6>
-                    <p>Start trading to build your portfolio.</p>
-                    <a href="{{ url_for('market.stocks') }}" class="btn btn-primary">Browse Stocks</a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+<script>
+// Global variables
+let currentView = 'table';
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializePortfolio();
+    setupEventListeners();
+});
+
+function initializePortfolio() {
+    // Initialize real-time updates if needed
+    startRealTimeUpdates();
+}
+
+function setupEventListeners() {
+    // View toggle functionality
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            setView(view);
+        });
+    });
+}
+
+function setView(view) {
+    currentView = view;
     
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">Place Order</a>
-                    <a href="{{ url_for('trading.orders') }}" class="btn btn-outline-primary">View Orders</a>
-                    <a href="{{ url_for('cash.index') }}" class="btn btn-outline-secondary">Manage Cash</a>
-                    <a href="{{ url_for('portfolio.history') }}" class="btn btn-outline-info">Trade History</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card mt-3">
-            <div class="card-header">
-                <h5 class="mb-0">Recent Trades</h5>
-            </div>
-            <div class="card-body">
-                {% if recent_trades %}
-                    {% for trade in recent_trades %}
-                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                        <div>
-                            <strong>{{ trade.stock.ticker }}</strong>
-                            <span class="badge bg-{{ 'success' if trade.side.value == 'buy' else 'danger' }} ms-2">
-                                {{ trade.side.value.upper() }}
-                            </span>
-                            <br>
-                            <small class="text-muted">{{ trade.quantity }} @ ${{ "%.2f"|format(trade.price) }}</small>
-                        </div>
-                        <div class="text-end">
-                            <small class="text-muted">{{ trade.executed_at.strftime('%m/%d %H:%M') }}</small>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    <a href="{{ url_for('portfolio.history') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                {% else %}
-                    <p class="text-muted mb-0">No recent trades</p>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+    // Update view buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    // Show/hide views
+    document.getElementById('positions-table-view').style.display = view === 'table' ? 'block' : 'none';
+    document.getElementById('positions-cards-view').style.display = view === 'cards' ? 'block' : 'none';
+}
+
+function startRealTimeUpdates() {
+    // Placeholder for real-time price updates
+    console.log('Starting real-time portfolio updates...');
+}
+
+// Add smooth animations for cards
+document.querySelectorAll('.summary-card, .position-card, .quick-action').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+</script>
+
+<style>
+/* Enhanced Portfolio Overview Page Styles */
+.portfolio-page {
+    min-height: 100vh;
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+    overflow-x: hidden;
+}
+
+.portfolio-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.portfolio-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: float 25s ease-in-out infinite;
+}
+
+.portfolio-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-element {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border-radius: 50%;
+    animation: floatElement 8s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: -5%;
+    animation-delay: 3s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: 6s;
+}
+
+@keyframes floatElement {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg); 
+        opacity: 0.6;
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Portfolio Container */
+.portfolio-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Header Section */
+.portfolio-header {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.page-title i {
+    color: #10b981;
+    font-size: 1.75rem;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: #9ca3af;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #374151;
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Portfolio Summary */
+.portfolio-summary {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.summary-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.summary-card:hover::before {
+    opacity: 1;
+}
+
+.summary-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+}
+
+.summary-card .card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #10b981;
+    font-size: 1.25rem;
+}
+
+.card-info h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 0.25rem 0;
+}
+
+.card-info p {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.card-value {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.card-value .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1;
+}
+
+.card-value .value.positive {
+    color: #10b981;
+}
+
+.card-value .value.negative {
+    color: #ef4444;
+}
+
+.change {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.change.positive {
+    color: #10b981;
+}
+
+.change.negative {
+    color: #ef4444;
+}
+
+.change.neutral {
+    color: #9ca3af;
+}
+
+/* Portfolio Content */
+.portfolio-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+/* Positions Section */
+.positions-section {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.section-header h2 i {
+    color: #10b981;
+}
+
+.section-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.view-controls {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}
+
+.view-btn {
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-btn.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.view-btn:hover:not(.active) {
+    background: rgba(16, 185, 129, 0.05);
+    color: #10b981;
+}
+
+/* Positions Table */
+.positions-table-view {
+    overflow-x: auto;
+}
+
+.table-wrapper {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+.positions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.positions-table thead {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.positions-table th {
+    padding: 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #9ca3af;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.positions-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+}
+
+.position-row:hover {
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.stock-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stock-ticker {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.stock-company {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+.quantity, .avg-cost, .market-price, .market-value {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.pnl {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.pnl.positive {
+    color: #10b981;
+}
+
+.pnl.negative {
+    color: #ef4444;
+}
+
+.position-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.action-btn.view {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.action-btn.view:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+.action-btn.trade {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.action-btn.trade:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Positions Cards */
+.positions-cards-view {
+    display: none;
+}
+
+.positions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.position-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.position-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+}
+
+.position-card .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.pnl-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.pnl-badge.positive {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.pnl-badge.negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.position-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-label {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.detail-value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.card-actions .action-btn {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: #10b981;
+    font-size: 2rem;
+}
+
+.empty-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.75rem;
+}
+
+.empty-description {
+    color: #9ca3af;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.empty-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* Portfolio Sidebar */
+.portfolio-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.quick-actions-card,
+.recent-trades-card,
+.portfolio-stats-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.quick-actions-card:hover,
+.recent-trades-card:hover,
+.portfolio-stats-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+}
+
+.quick-actions-card .card-header,
+.recent-trades-card .card-header,
+.portfolio-stats-card .card-header {
+    margin-bottom: 1.5rem;
+}
+
+.quick-actions-card .card-header h3,
+.recent-trades-card .card-header h3,
+.portfolio-stats-card .card-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.quick-actions-card .card-header h3 i,
+.recent-trades-card .card-header h3 i,
+.portfolio-stats-card .card-header h3 i {
+    color: #10b981;
+}
+
+/* Quick Actions */
+.quick-action {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 0.75rem;
+    color: #9ca3af;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-bottom: 0.75rem;
+}
+
+.quick-action:last-child {
+    margin-bottom: 0;
+}
+
+.quick-action:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.action-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #10b981;
+    flex-shrink: 0;
+}
+
+.action-info {
+    flex: 1;
+}
+
+.action-title {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.action-desc {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+/* Recent Trades */
+.trade-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+}
+
+.trade-item:last-child {
+    border-bottom: none;
+}
+
+.trade-info {
+    flex: 1;
+}
+
+.trade-stock {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.ticker {
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.side {
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.side.buy {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.side.sell {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.trade-details {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+.trade-time {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+.card-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.view-all-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.75rem;
+    color: #10b981;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.view-all-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.empty-trades {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #9ca3af;
+}
+
+.empty-trades i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+}
+
+/* Portfolio Stats */
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.stat-value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .portfolio-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .portfolio-sidebar {
+        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+    }
+}
+
+@media (max-width: 768px) {
+    .portfolio-page {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .portfolio-sidebar {
+        grid-template-columns: 1fr;
+        display: flex;
+    }
+    
+    .positions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .empty-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .positions-table-view {
+        overflow-x: auto;
+    }
+    
+    .positions-table {
+        min-width: 600px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .summary-card {
+        padding: 1rem;
+    }
+    
+    .card-value .value {
+        font-size: 1.5rem;
+    }
+    
+    .positions-section {
+        padding: 1rem;
+    }
+    
+    .quick-action {
+        padding: 0.75rem;
+    }
+}
+</style>
+
 {% endblock %}

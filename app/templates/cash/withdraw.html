@@ -3,44 +3,1468 @@
 {% block title %}Withdraw Cash - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="mb-0">Withdraw Cash</h3>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info">
-                    <strong>Available Balance:</strong> ${{ "{:,.2f}".format(current_user.get_cash_balance()) }}
+<div class="withdraw-page">
+    <div class="withdraw-background">
+        <div class="withdraw-pattern"></div>
+        <div class="withdraw-grid"></div>
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
+        </div>
+    </div>
+    
+    <div class="withdraw-container">
+        <!-- Header Section -->
+        <div class="withdraw-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-minus-circle"></i>
+                        Withdraw Cash
+                    </h1>
+                    <p class="page-subtitle">Withdraw funds from your trading account securely and instantly</p>
                 </div>
-                
-                <form method="POST">
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        {{ form.amount.label(class="form-label") }}
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.amount(class="form-control") }}
+                <div class="header-actions">
+                    <a href="{{ url_for('cash.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to Cash</span>
+                    </a>
+                    <a href="{{ url_for('cash.deposit') }}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Deposit Instead</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="withdraw-content">
+            <!-- Main Content -->
+            <div class="withdraw-main">
+                <!-- Withdraw Form Section -->
+                <div class="withdraw-form-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-credit-card"></i>
+                            Withdraw Funds
+                        </h2>
+                        <div class="withdraw-status">
+                            <span class="status-indicator live"></span>
+                            <span>Instant Processing</span>
                         </div>
-                        <div class="form-text">Enter the amount to withdraw (cannot exceed your current balance).</div>
-                        {% for error in form.amount.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
                     </div>
-                    
-                    <div class="alert alert-warning">
-                        <h6>Simulation Notice:</h6>
-                        <p class="mb-0">This is a simulated withdrawal for educational purposes only. No real money is involved.</p>
+
+                    <!-- Current Balance Display -->
+                    <div class="balance-display">
+                        <div class="balance-card">
+                            <div class="balance-header">
+                                <h3>
+                                    <i class="fas fa-wallet"></i>
+                                    Available Balance
+                                </h3>
+                                <button class="refresh-balance" onclick="refreshBalance()">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <div class="balance-amount">${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</div>
+                            <div class="balance-label">Ready for Withdrawal</div>
+                        </div>
                     </div>
-                    
-                    <div class="d-flex gap-2">
-                        {{ form.submit(class="btn btn-danger", value="Withdraw Funds") }}
-                        <a href="{{ url_for('cash.index') }}" class="btn btn-secondary">Cancel</a>
+
+                    <form method="POST" class="withdraw-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Amount Input -->
+                        <div class="form-group">
+                            <div class="form-label">
+                                <i class="fas fa-dollar-sign"></i>
+                                <span>Withdraw Amount</span>
+                            </div>
+                            <div class="amount-input-group">
+                                <div class="currency-symbol">$</div>
+                                {{ form.amount(class="amount-input", id="amount-input", placeholder="0.00", min="0.01", max=current_user.get_cash_balance(), step="0.01") }}
+                                <div class="amount-controls">
+                                    <button type="button" class="amount-btn" onclick="setAmount(100)">$100</button>
+                                    <button type="button" class="amount-btn" onclick="setAmount(500)">$500</button>
+                                    <button type="button" class="amount-btn" onclick="setAmount(1000)">$1K</button>
+                                    <button type="button" class="amount-btn" onclick="setAmount({{ current_user.get_cash_balance() }})">All</button>
+                                </div>
+                            </div>
+                            <div class="form-help">Enter amount between $0.01 and ${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</div>
+                            {% for error in form.amount.errors %}
+                                <div class="form-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Withdraw Summary -->
+                        <div class="withdraw-summary">
+                            <div class="summary-header">
+                                <h3>
+                                    <i class="fas fa-calculator"></i>
+                                    Withdrawal Summary
+                                </h3>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-row">
+                                    <span class="summary-label">Current Balance:</span>
+                                    <span class="summary-value">${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Withdraw Amount:</span>
+                                    <span class="summary-value">$<span id="withdraw-amount">0.00</span></span>
+                                </div>
+                                <div class="summary-row total">
+                                    <span class="summary-label">New Balance:</span>
+                                    <span class="summary-value">$<span id="new-balance">{{ "{:,.2f}".format(current_user.get_cash_balance()) }}</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Withdraw Actions -->
+                        <div class="withdraw-actions">
+                            <button type="submit" class="submit-btn" id="submit-withdraw">
+                                <i class="fas fa-check"></i>
+                                <span>Withdraw Funds</span>
+                            </button>
+                            <a href="{{ url_for('cash.index') }}" class="cancel-btn">
+                                <i class="fas fa-times"></i>
+                                <span>Cancel</span>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="withdraw-sidebar">
+                <!-- Withdrawal Methods -->
+                <div class="withdrawal-methods-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-university"></i>
+                            Withdrawal Methods
+                        </h3>
                     </div>
-                </form>
+                    <div class="card-content">
+                        <div class="method-option active">
+                            <div class="method-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">Bank Transfer</div>
+                                <div class="method-desc">Instant processing</div>
+                            </div>
+                            <div class="method-status">
+                                <span class="status-badge">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="method-option">
+                            <div class="method-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">Debit Card</div>
+                                <div class="method-desc">Coming soon</div>
+                            </div>
+                            <div class="method-status">
+                                <span class="status-badge disabled">Soon</span>
+                            </div>
+                        </div>
+                        
+                        <div class="method-option">
+                            <div class="method-icon">
+                                <i class="fab fa-paypal"></i>
+                            </div>
+                            <div class="method-info">
+                                <div class="method-name">PayPal</div>
+                                <div class="method-desc">Coming soon</div>
+                            </div>
+                            <div class="method-status">
+                                <span class="status-badge disabled">Soon</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Withdrawal Info -->
+                <div class="withdrawal-info-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-info-circle"></i>
+                            Withdrawal Information
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="info-item">
+                            <span class="info-label">Processing Time:</span>
+                            <span class="info-value">Instant</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Minimum Withdrawal:</span>
+                            <span class="info-value">$0.01</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Maximum Withdrawal:</span>
+                            <span class="info-value">${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Fees:</span>
+                            <span class="info-value">No fees</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Notice -->
+                <div class="security-notice-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-shield-alt"></i>
+                            Security Notice
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="notice-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>This is a simulated trading platform for educational purposes</span>
+                        </div>
+                        <div class="notice-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>No real money is involved in any transactions</span>
+                        </div>
+                        <div class="notice-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>All withdrawals are instantly processed in the simulation</span>
+                        </div>
+                        <div class="notice-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Your account is secure and protected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-bolt"></i>
+                            Quick Actions
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <a href="{{ url_for('market.stocks') }}" class="quick-action">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Browse Stocks</span>
+                        </a>
+                        <a href="{{ url_for('trading.place_order') }}" class="quick-action">
+                            <i class="fas fa-exchange-alt"></i>
+                            <span>Start Trading</span>
+                        </a>
+                        <a href="{{ url_for('portfolio.index') }}" class="quick-action">
+                            <i class="fas fa-portfolio"></i>
+                            <span>View Portfolio</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Withdraw Confirmation Modal -->
+<div class="modal-overlay" id="confirmation-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirm Withdrawal</h3>
+            <button class="modal-close" onclick="closeConfirmationModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Please review your withdrawal details before confirming:</p>
+            <div class="confirmation-summary" id="confirmation-summary">
+                <!-- Withdrawal details will be populated here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
+            <button class="btn btn-primary" id="confirm-withdraw-btn">Confirm Withdrawal</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+const currentBalance = {{ current_user.get_cash_balance() }};
+let withdrawAmount = 0;
+
+// DOM elements
+const amountInput = document.getElementById('amount-input');
+const withdrawAmountSpan = document.getElementById('withdraw-amount');
+const newBalanceSpan = document.getElementById('new-balance');
+const submitBtn = document.getElementById('submit-withdraw');
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeWithdraw();
+    setupEventListeners();
+});
+
+function initializeWithdraw() {
+    updateWithdrawSummary();
+}
+
+function setupEventListeners() {
+    // Amount input
+    amountInput.addEventListener('input', function() {
+        updateWithdrawSummary();
+    });
+    
+    // Form submission
+    document.querySelector('.withdraw-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        showConfirmationModal();
+    });
+    
+    // Confirm withdrawal button
+    document.getElementById('confirm-withdraw-btn').addEventListener('click', function() {
+        executeWithdrawal();
+    });
+}
+
+function setAmount(amount) {
+    amountInput.value = amount;
+    updateWithdrawSummary();
+    amountInput.focus();
+}
+
+function updateWithdrawSummary() {
+    const amount = parseFloat(amountInput.value) || 0;
+    withdrawAmount = amount;
+    
+    withdrawAmountSpan.textContent = amount.toFixed(2);
+    newBalanceSpan.textContent = (currentBalance - amount).toFixed(2);
+    
+    // Update button state
+    if (amount >= 0.01 && amount <= currentBalance) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('disabled');
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('disabled');
+    }
+}
+
+function showConfirmationModal() {
+    const amount = parseFloat(amountInput.value) || 0;
+    
+    if (amount < 0.01) {
+        showToast('Please enter a minimum withdrawal amount of $0.01', 'error');
+        return;
+    }
+    
+    if (amount > currentBalance) {
+        showToast('Withdrawal amount cannot exceed your current balance', 'error');
+        return;
+    }
+    
+    const newBalance = currentBalance - amount;
+    
+    // Populate confirmation modal
+    document.getElementById('confirmation-summary').innerHTML = `
+        <div class="confirmation-item">
+            <span class="confirmation-label">Current Balance:</span>
+            <span class="confirmation-value">$${currentBalance.toFixed(2)}</span>
+        </div>
+        <div class="confirmation-item">
+            <span class="confirmation-label">Withdraw Amount:</span>
+            <span class="confirmation-value">$${amount.toFixed(2)}</span>
+        </div>
+        <div class="confirmation-item total">
+            <span class="confirmation-label">New Balance:</span>
+            <span class="confirmation-value">$${newBalance.toFixed(2)}</span>
+        </div>
+    `;
+    
+    document.getElementById('confirmation-modal').style.display = 'flex';
+}
+
+function closeConfirmationModal() {
+    document.getElementById('confirmation-modal').style.display = 'none';
+}
+
+function executeWithdrawal() {
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Processing...</span>';
+    
+    // Submit the form
+    document.querySelector('.withdraw-form').submit();
+}
+
+function refreshBalance() {
+    location.reload();
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// Close modal when clicking outside
+document.getElementById('confirmation-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeConfirmationModal();
+    }
+});
+
+// Format amount input as user types
+amountInput.addEventListener('input', function() {
+    let value = this.value.replace(/[^\d.]/g, '');
+    if (value.includes('.')) {
+        const parts = value.split('.');
+        if (parts[1] && parts[1].length > 2) {
+            parts[1] = parts[1].substring(0, 2);
+        }
+        value = parts.join('.');
+    }
+    this.value = value;
+});
+</script>
+
+<style>
+/* Enhanced Cash Withdraw Page Styles */
+.withdraw-page {
+    min-height: 100vh;
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+    overflow-x: hidden;
+}
+
+.withdraw-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.withdraw-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: float 25s ease-in-out infinite;
+}
+
+.withdraw-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-element {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border-radius: 50%;
+    animation: floatElement 8s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: -5%;
+    animation-delay: 3s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: 6s;
+}
+
+@keyframes floatElement {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg); 
+        opacity: 0.6;
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Withdraw Container */
+.withdraw-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Header Section */
+.withdraw-header {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.page-title i {
+    color: #ef4444;
+    font-size: 1.75rem;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: #9ca3af;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #374151;
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+/* Withdraw Content */
+.withdraw-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+/* Main Withdraw Panel */
+.withdraw-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.withdraw-form-section {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.section-header h2 i {
+    color: #ef4444;
+}
+
+.withdraw-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ef4444;
+    font-weight: 500;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Balance Display */
+.balance-display {
+    margin-bottom: 2rem;
+}
+
+.balance-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.balance-card:hover {
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-2px);
+}
+
+.balance-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.balance-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.balance-header h3 i {
+    color: #ef4444;
+}
+
+.refresh-balance {
+    width: 32px;
+    height: 32px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 0.5rem;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.refresh-balance:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: rotate(180deg);
+}
+
+.balance-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: 0.5rem;
+}
+
+.balance-label {
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+/* Form Styles */
+.withdraw-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.form-label i {
+    color: #ef4444;
+    width: 16px;
+}
+
+/* Amount Input */
+.amount-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.amount-input {
+    width: 100%;
+    padding: 1.5rem 1rem 1.5rem 3rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.amount-input:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.currency-symbol {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #ef4444;
+    font-size: 1.5rem;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+.amount-controls {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+
+.amount-btn {
+    padding: 0.75rem 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 0.75rem;
+    color: #ef4444;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.amount-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
+}
+
+.form-help {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-top: 0.5rem;
+}
+
+.form-error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Withdraw Summary */
+.withdraw-summary {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.withdraw-summary:hover {
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.summary-header {
+    margin-bottom: 1.5rem;
+}
+
+.summary-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.summary-header h3 i {
+    color: #ef4444;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.total {
+    border-top: 1px solid rgba(239, 68, 68, 0.3);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+.summary-label {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.summary-value {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.summary-row.total .summary-value {
+    color: #ef4444;
+    font-size: 1.25rem;
+}
+
+/* Withdraw Actions */
+.withdraw-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.submit-btn {
+    flex: 1;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border: none;
+    border-radius: 1rem;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.submit-btn:hover:not(:disabled):not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+.submit-btn:disabled,
+.submit-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cancel-btn {
+    flex: 1;
+    padding: 1rem 2rem;
+    background: transparent;
+    border: 2px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    color: #9ca3af;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.cancel-btn:hover {
+    border-color: #10b981;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+/* Withdraw Sidebar */
+.withdraw-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.withdrawal-methods-card,
+.withdrawal-info-card,
+.security-notice-card,
+.quick-actions-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.withdrawal-methods-card:hover,
+.withdrawal-info-card:hover,
+.security-notice-card:hover,
+.quick-actions-card:hover {
+    border-color: rgba(239, 68, 68, 0.3);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    margin-bottom: 1.5rem;
+}
+
+.card-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.card-header h3 i {
+    color: #ef4444;
+}
+
+/* Withdrawal Methods */
+.card-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.method-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.method-option.active {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.method-option:hover {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.method-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(239, 68, 68, 0.2);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ef4444;
+    flex-shrink: 0;
+}
+
+.method-info {
+    flex: 1;
+}
+
+.method-name {
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.method-desc {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+.method-status {
+    flex-shrink: 0;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 1rem;
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.disabled {
+    background: rgba(55, 65, 81, 0.3);
+    border-color: rgba(55, 65, 81, 0.5);
+    color: #9ca3af;
+}
+
+/* Info Items */
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Notice Items */
+.notice-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.notice-item:last-child {
+    margin-bottom: 0;
+}
+
+.notice-item i {
+    color: #ef4444;
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+
+.notice-item span {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+/* Quick Actions */
+.quick-action {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 0.75rem;
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.quick-action:hover {
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.quick-action i {
+    color: #ef4444;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.9) 0%, rgba(17, 24, 39, 0.95) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 2rem 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 0.5rem;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.modal-body {
+    padding: 1rem 2rem;
+}
+
+.modal-body p {
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.confirmation-summary {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.confirmation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.confirmation-item:last-child {
+    margin-bottom: 0;
+}
+
+.confirmation-item.total {
+    border-top: 1px solid rgba(239, 68, 68, 0.3);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.confirmation-label {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.confirmation-value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.confirmation-item.total .confirmation-value {
+    color: #ef4444;
+    font-size: 1.125rem;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 2rem 2rem;
+    border-top: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.modal-footer .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    color: #ffffff;
+    font-weight: 600;
+    z-index: 1001;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .withdraw-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .withdraw-sidebar {
+        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+    }
+}
+
+@media (max-width: 768px) {
+    .withdraw-page {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .withdraw-sidebar {
+        grid-template-columns: 1fr;
+        display: flex;
+    }
+    
+    .amount-controls {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .withdraw-actions {
+        flex-direction: column;
+    }
+    
+    .balance-amount {
+        font-size: 2rem;
+    }
+    
+    .modal-overlay {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .amount-controls {
+        grid-template-columns: 1fr;
+    }
+    
+    .amount-input {
+        font-size: 1.25rem;
+    }
+    
+    .balance-amount {
+        font-size: 1.75rem;
+    }
+}
+</style>
+
 {% endblock %}

@@ -3,99 +3,297 @@
 {% block title %}Place Order - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="mb-0">Place Market Order</h3>
+<div class="place-order-page">
+    <div class="place-order-background">
+        <div class="place-order-pattern"></div>
+        <div class="place-order-grid"></div>
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
+        </div>
+    </div>
+    
+    <div class="place-order-container">
+        <!-- Header Section -->
+        <div class="place-order-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-exchange-alt"></i>
+                        Place Order
+                    </h1>
+                    <p class="page-subtitle">Execute trades with real-time market data and instant order placement</p>
+                </div>
+                <div class="header-actions">
+                    <a href="{{ url_for('trading.orders') }}" class="btn btn-secondary">
+                        <i class="fas fa-list"></i>
+                        <span>View Orders</span>
+                    </a>
+                    <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Browse Stocks</span>
+                    </a>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="POST">
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        {{ form.stock_id.label(class="form-label") }}
-                        {{ form.stock_id(class="form-select", id="stock-select") }}
-                        {% for error in form.stock_id.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                        <div class="mt-2">
-                            <small class="text-muted">Current Price: $<span id="current-price">--</span></small>
+        </div>
+
+        <div class="trading-layout">
+            <!-- Main Trading Panel -->
+            <div class="trading-main">
+                <div class="order-form-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-bolt"></i>
+                            Market Order
+                        </h2>
+                        <div class="order-status">
+                            <span class="status-indicator live"></span>
+                            <span>Market Open</span>
                         </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        {{ form.side.label(class="form-label") }}
-                        {{ form.side(class="form-select") }}
-                        {% for error in form.side.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        {{ form.quantity.label(class="form-label") }}
-                        {{ form.quantity(class="form-control", id="quantity-input") }}
-                        <div class="form-text">Enter the number of shares you want to trade (1-10,000).</div>
-                        {% for error in form.quantity.errors %}
-                            <div class="text-danger">{{ error }}</div>
-                        {% endfor %}
-                    </div>
 
-                    <div class="mb-3">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6 class="card-title">Order Summary</h6>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <small class="text-muted">Price per share:</small><br>
-                                        <strong>$<span id="price-per-share">--</span></strong>
+                    <form method="POST" class="order-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Stock Selection -->
+                        <div class="form-group">
+                            <div class="form-label">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Select Stock</span>
+                            </div>
+                            <div class="stock-selector">
+                                {{ form.stock_id(class="stock-select", id="stock-select") }}
+                                <div class="stock-info">
+                                    <div class="current-price">
+                                        <span class="price-label">Current Price:</span>
+                                        <span class="price-value">$<span id="current-price">--</span></span>
                                     </div>
-                                    <div class="col-6">
-                                        <small class="text-muted">Total Cost:</small><br>
-                                        <strong class="text-primary">$<span id="total-cost">--</span></strong>
+                                    <div class="price-change" id="price-change-display">
+                                        <span class="change-label">Change:</span>
+                                        <span class="change-value">--</span>
                                     </div>
                                 </div>
                             </div>
+                            {% for error in form.stock_id.errors %}
+                                <div class="form-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Order Side Selection -->
+                        <div class="form-group">
+                            <div class="form-label">
+                                <i class="fas fa-arrows-alt-v"></i>
+                                <span>Order Side</span>
+                            </div>
+                            <div class="side-selector">
+                                <div class="side-options">
+                                    <input type="radio" name="side" value="buy" id="side-buy" class="side-input" checked>
+                                    <label for="side-buy" class="side-option buy">
+                                        <div class="side-icon">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </div>
+                                        <div class="side-content">
+                                            <div class="side-title">Buy</div>
+                                            <div class="side-subtitle">Purchase shares</div>
+                                        </div>
+                                    </label>
+                                    
+                                    <input type="radio" name="side" value="sell" id="side-sell" class="side-input">
+                                    <label for="side-sell" class="side-option sell">
+                                        <div class="side-icon">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </div>
+                                        <div class="side-content">
+                                            <div class="side-title">Sell</div>
+                                            <div class="side-subtitle">Sell shares</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            {% for error in form.side.errors %}
+                                <div class="form-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Quantity Input -->
+                        <div class="form-group">
+                            <div class="form-label">
+                                <i class="fas fa-hashtag"></i>
+                                <span>Quantity</span>
+                            </div>
+                            <div class="quantity-input-group">
+                                {{ form.quantity(class="quantity-input", id="quantity-input", placeholder="Enter shares", min="1", max="10000") }}
+                                <div class="quantity-controls">
+                                    <button type="button" class="qty-btn" onclick="adjustQuantity(-1)">-</button>
+                                    <button type="button" class="qty-btn" onclick="adjustQuantity(1)">+</button>
+                                </div>
+                            </div>
+                            <div class="form-help">Enter the number of shares you want to trade (1-10,000)</div>
+                            {% for error in form.quantity.errors %}
+                                <div class="form-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="order-summary">
+                            <div class="summary-header">
+                                <h3>
+                                    <i class="fas fa-calculator"></i>
+                                    Order Summary
+                                </h3>
+                            </div>
+                            <div class="summary-content">
+                                <div class="summary-row">
+                                    <span class="summary-label">Price per share:</span>
+                                    <span class="summary-value">$<span id="price-per-share">--</span></span>
+                                </div>
+                                <div class="summary-row">
+                                    <span class="summary-label">Quantity:</span>
+                                    <span class="summary-value"><span id="summary-quantity">--</span> shares</span>
+                                </div>
+                                <div class="summary-row total">
+                                    <span class="summary-label">Total Cost:</span>
+                                    <span class="summary-value">$<span id="total-cost">--</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Actions -->
+                        <div class="order-actions">
+                            <button type="submit" class="submit-btn" id="submit-order">
+                                <i class="fas fa-check"></i>
+                                <span>Place Order</span>
+                            </button>
+                            <a href="{{ url_for('trading.orders') }}" class="cancel-btn">
+                                <i class="fas fa-times"></i>
+                                <span>Cancel</span>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="trading-sidebar">
+                <!-- Account Balance -->
+                <div class="balance-card">
+                    <div class="balance-header">
+                        <h3>
+                            <i class="fas fa-wallet"></i>
+                            Account Balance
+                        </h3>
+                        <button class="refresh-balance" onclick="refreshBalance()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="balance-content">
+                        <div class="balance-amount">${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</div>
+                        <div class="balance-label">Available Cash</div>
+                        <div class="balance-after" id="balance-after-order">
+                            <span class="after-label">After Order:</span>
+                            <span class="after-amount">${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</span>
                         </div>
                     </div>
-                    
-                    <div class="alert alert-info">
-                        <h6>Order Details:</h6>
-                        <ul class="mb-0">
-                            <li>Order Type: <strong>Market Order</strong></li>
-                            <li>Execution: Immediate when market is open</li>
-                            <li>Price: Current market price at execution</li>
-                            <li>Status: Will be queued if market is closed</li>
-                        </ul>
+                    <div class="balance-actions">
+                        <a href="{{ url_for('cash.deposit') }}" class="balance-btn deposit">
+                            <i class="fas fa-plus"></i>
+                            <span>Add Funds</span>
+                        </a>
+                        <a href="{{ url_for('cash.index') }}" class="balance-btn manage">
+                            <i class="fas fa-cog"></i>
+                            <span>Manage</span>
+                        </a>
                     </div>
-                    
-                    <div class="d-flex gap-2">
-                        {{ form.submit(class="btn btn-primary") }}
-                        <a href="{{ url_for('trading.orders') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+
+                <!-- Market Info -->
+                <div class="market-info-card">
+                    <div class="market-header">
+                        <h3>
+                            <i class="fas fa-info-circle"></i>
+                            Market Information
+                        </h3>
                     </div>
-                </form>
+                    <div class="market-content">
+                        <div class="info-item">
+                            <span class="info-label">Order Type:</span>
+                            <span class="info-value">Market Order</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Execution:</span>
+                            <span class="info-value">Immediate</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Price:</span>
+                            <span class="info-value">Current Market</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status:</span>
+                            <span class="info-value market-open">Market Open</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Tips -->
+                <div class="tips-card">
+                    <div class="tips-header">
+                        <h3>
+                            <i class="fas fa-lightbulb"></i>
+                            Trading Tips
+                        </h3>
+                    </div>
+                    <div class="tips-content">
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Market orders execute at current market price</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Orders are processed immediately when market is open</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Check your balance before placing large orders</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Review order details carefully before submitting</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Your Current Cash Balance</h5>
+<!-- Order Confirmation Modal -->
+<div class="modal-overlay" id="confirmation-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirm Order</h3>
+            <button class="modal-close" onclick="closeConfirmationModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p>Please review your order details before submitting:</p>
+            <div class="confirmation-summary" id="confirmation-summary">
+                <!-- Order details will be populated here -->
             </div>
-            <div class="card-body">
-                <h4 class="text-success">${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</h4>
-                <a href="{{ url_for('cash.deposit') }}" class="btn btn-sm btn-outline-primary">Add Funds</a>
-            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
+            <button class="btn btn-primary" id="confirm-order-btn">Confirm Order</button>
         </div>
     </div>
 </div>
 
 <script>
-// Stock prices data from backend
+// Global variables
 const stockPrices = {{ stock_prices|tojson }};
+let currentBalance = {{ current_user.get_cash_balance() }};
 
 // DOM elements
 const stockSelect = document.getElementById('stock-select');
@@ -103,8 +301,50 @@ const quantityInput = document.getElementById('quantity-input');
 const currentPriceSpan = document.getElementById('current-price');
 const pricePerShareSpan = document.getElementById('price-per-share');
 const totalCostSpan = document.getElementById('total-cost');
+const summaryQuantitySpan = document.getElementById('summary-quantity');
+const balanceAfterSpan = document.getElementById('balance-after-order');
+const submitBtn = document.getElementById('submit-order');
 
-// Update price display
+document.addEventListener('DOMContentLoaded', function() {
+    initializePlaceOrder();
+    setupEventListeners();
+});
+
+function initializePlaceOrder() {
+    updatePriceDisplay();
+    updateBalanceAfterOrder();
+}
+
+function setupEventListeners() {
+    // Stock selection
+    stockSelect.addEventListener('change', updatePriceDisplay);
+    
+    // Quantity input
+    quantityInput.addEventListener('input', function() {
+        updatePriceDisplay();
+        updateBalanceAfterOrder();
+    });
+    
+    // Side selection
+    document.querySelectorAll('.side-input').forEach(input => {
+        input.addEventListener('change', function() {
+            updateBalanceAfterOrder();
+            updateSideSelection();
+        });
+    });
+    
+    // Form submission
+    document.querySelector('.order-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        showConfirmationModal();
+    });
+    
+    // Confirm order button
+    document.getElementById('confirm-order-btn').addEventListener('click', function() {
+        executeOrder();
+    });
+}
+
 function updatePriceDisplay() {
     const selectedStockId = stockSelect.value;
     const quantity = parseInt(quantityInput.value) || 0;
@@ -116,19 +356,1317 @@ function updatePriceDisplay() {
         currentPriceSpan.textContent = price.toFixed(4);
         pricePerShareSpan.textContent = price.toFixed(4);
         totalCostSpan.textContent = totalCost.toFixed(2);
+        summaryQuantitySpan.textContent = quantity;
     } else {
         currentPriceSpan.textContent = '--';
         pricePerShareSpan.textContent = '--';
         totalCostSpan.textContent = '--';
+        summaryQuantitySpan.textContent = '--';
     }
 }
 
-// Event listeners
-stockSelect.addEventListener('change', updatePriceDisplay);
-quantityInput.addEventListener('input', updatePriceDisplay);
+function updateBalanceAfterOrder() {
+    const selectedStockId = stockSelect.value;
+    const quantity = parseInt(quantityInput.value) || 0;
+    const side = document.querySelector('.side-input:checked').value;
+    
+    if (selectedStockId && stockPrices[selectedStockId] && quantity > 0) {
+        const price = stockPrices[selectedStockId];
+        const totalCost = price * quantity;
+        
+        let newBalance;
+        if (side === 'buy') {
+            newBalance = currentBalance - totalCost;
+        } else {
+            newBalance = currentBalance + totalCost;
+        }
+        
+        balanceAfterSpan.querySelector('.after-amount').textContent = newBalance.toFixed(2);
+        
+        // Update styling based on balance
+        const balanceAfterElement = document.getElementById('balance-after-order');
+        if (side === 'buy' && newBalance < 0) {
+            balanceAfterElement.classList.add('insufficient');
+        } else {
+            balanceAfterElement.classList.remove('insufficient');
+        }
+    } else {
+        balanceAfterSpan.querySelector('.after-amount').textContent = currentBalance.toFixed(2);
+        document.getElementById('balance-after-order').classList.remove('insufficient');
+    }
+}
 
-// Initial update
-updatePriceDisplay();
+function updateSideSelection() {
+    const buyOption = document.querySelector('.side-option.buy');
+    const sellOption = document.querySelector('.side-option.sell');
+    
+    if (document.getElementById('side-buy').checked) {
+        buyOption.classList.add('selected');
+        sellOption.classList.remove('selected');
+    } else {
+        sellOption.classList.add('selected');
+        buyOption.classList.remove('selected');
+    }
+}
+
+function adjustQuantity(delta) {
+    const currentValue = parseInt(quantityInput.value) || 0;
+    const newValue = Math.max(1, Math.min(10000, currentValue + delta));
+    quantityInput.value = newValue;
+    updatePriceDisplay();
+    updateBalanceAfterOrder();
+}
+
+function showConfirmationModal() {
+    const selectedStockId = stockSelect.value;
+    const quantity = parseInt(quantityInput.value) || 0;
+    const side = document.querySelector('.side-input:checked').value;
+    
+    if (!selectedStockId || !quantity || quantity <= 0) {
+        showToast('Please select a stock and enter a valid quantity', 'error');
+        return;
+    }
+    
+    if (!stockPrices[selectedStockId]) {
+        showToast('Unable to get current price for selected stock', 'error');
+        return;
+    }
+    
+    const price = stockPrices[selectedStockId];
+    const totalCost = price * quantity;
+    const selectedOption = stockSelect.options[stockSelect.selectedIndex];
+    const stockName = selectedOption.text;
+    
+    // Check if sufficient balance for buy orders
+    if (side === 'buy' && totalCost > currentBalance) {
+        showToast('Insufficient balance for this order', 'error');
+        return;
+    }
+    
+    // Populate confirmation modal
+    document.getElementById('confirmation-summary').innerHTML = `
+        <div class="confirmation-item">
+            <span class="confirmation-label">Stock:</span>
+            <span class="confirmation-value">${stockName}</span>
+        </div>
+        <div class="confirmation-item">
+            <span class="confirmation-label">Side:</span>
+            <span class="confirmation-value ${side}">${side.toUpperCase()}</span>
+        </div>
+        <div class="confirmation-item">
+            <span class="confirmation-label">Quantity:</span>
+            <span class="confirmation-value">${quantity.toLocaleString()} shares</span>
+        </div>
+        <div class="confirmation-item">
+            <span class="confirmation-label">Price per share:</span>
+            <span class="confirmation-value">$${price.toFixed(4)}</span>
+        </div>
+        <div class="confirmation-item total">
+            <span class="confirmation-label">Total ${side === 'buy' ? 'Cost' : 'Proceeds'}:</span>
+            <span class="confirmation-value">$${totalCost.toFixed(2)}</span>
+        </div>
+    `;
+    
+    document.getElementById('confirmation-modal').style.display = 'flex';
+}
+
+function closeConfirmationModal() {
+    document.getElementById('confirmation-modal').style.display = 'none';
+}
+
+function executeOrder() {
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Processing...</span>';
+    
+    // Submit the form
+    document.querySelector('.order-form').submit();
+}
+
+function refreshBalance() {
+    location.reload();
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
+    }, 3000);
+}
+
+// Close modal when clicking outside
+document.getElementById('confirmation-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeConfirmationModal();
+    }
+});
+
+// Initialize side selection
+updateSideSelection();
 </script>
+
+<style>
+/* Enhanced Place Order Page Styles */
+.place-order-page {
+    min-height: 100vh;
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+    overflow-x: hidden;
+}
+
+.place-order-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.place-order-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: float 25s ease-in-out infinite;
+}
+
+.place-order-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-element {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border-radius: 50%;
+    animation: floatElement 8s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: -5%;
+    animation-delay: 3s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: 6s;
+}
+
+@keyframes floatElement {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg); 
+        opacity: 0.6;
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Place Order Container */
+.place-order-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Header Section */
+.place-order-header {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.page-title i {
+    color: #10b981;
+    font-size: 1.75rem;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: #9ca3af;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #374151;
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Trading Layout */
+.trading-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+/* Main Trading Panel */
+.trading-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-form-section {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.section-header h2 i {
+    color: #10b981;
+}
+
+.order-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #10b981;
+    font-weight: 500;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Form Styles */
+.order-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.form-label i {
+    color: #10b981;
+    width: 16px;
+}
+
+/* Stock Selector */
+.stock-selector {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.stock-selector:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.stock-select {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 0.75rem;
+    color: #ffffff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stock-select:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.stock-select option {
+    background: #1f2937;
+    color: #ffffff;
+}
+
+.stock-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.current-price,
+.price-change {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.price-label,
+.change-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.price-value,
+.change-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+/* Side Selector */
+.side-selector {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.side-selector:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.side-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.side-input {
+    display: none;
+}
+
+.side-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.side-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.side-option:hover::before {
+    opacity: 1;
+}
+
+.side-option.selected {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.side-option.buy.selected {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.side-option.sell.selected {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.side-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.side-option.buy .side-icon {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.side-option.sell .side-icon {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.side-content {
+    flex: 1;
+}
+
+.side-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.side-subtitle {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+/* Quantity Input */
+.quantity-input-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.quantity-input {
+    flex: 1;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 0.75rem;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.quantity-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.qty-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.5rem;
+    color: #10b981;
+    font-size: 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qty-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: translateY(-1px);
+}
+
+.form-help {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-top: 0.5rem;
+}
+
+.form-error {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+/* Order Summary */
+.order-summary {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.order-summary:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.summary-header {
+    margin-bottom: 1.5rem;
+}
+
+.summary-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.summary-header h3 i {
+    color: #10b981;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.total {
+    border-top: 1px solid rgba(16, 185, 129, 0.3);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+.summary-label {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.summary-value {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.summary-row.total .summary-value {
+    color: #10b981;
+    font-size: 1.25rem;
+}
+
+/* Order Actions */
+.order-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.submit-btn {
+    flex: 1;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 1rem;
+    color: #000000;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cancel-btn {
+    flex: 1;
+    padding: 1rem 2rem;
+    background: transparent;
+    border: 2px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    color: #9ca3af;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.cancel-btn:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Trading Sidebar */
+.trading-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.balance-card,
+.market-info-card,
+.tips-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.balance-card:hover,
+.market-info-card:hover,
+.tips-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Balance Card */
+.balance-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.balance-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.balance-header h3 i {
+    color: #10b981;
+}
+
+.refresh-balance {
+    width: 32px;
+    height: 32px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.5rem;
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.refresh-balance:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: rotate(180deg);
+}
+
+.balance-content {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.balance-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #10b981;
+    margin-bottom: 0.5rem;
+}
+
+.balance-label {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.balance-after {
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0.75rem;
+    border: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.balance-after.insufficient {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.after-label {
+    display: block;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.after-amount {
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.balance-after.insufficient .after-amount {
+    color: #ef4444;
+}
+
+.balance-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.balance-btn {
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 0.75rem;
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.balance-btn.deposit:hover {
+    border-color: #10b981;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.balance-btn.manage:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+/* Market Info Card */
+.market-header,
+.tips-header {
+    margin-bottom: 1.5rem;
+}
+
+.market-header h3,
+.tips-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.market-header h3 i {
+    color: #10b981;
+}
+
+.tips-header h3 i {
+    color: #fbbf24;
+}
+
+.market-content,
+.tips-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-item,
+.tip-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+}
+
+.info-item:last-child,
+.tip-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.info-value.market-open {
+    color: #10b981;
+}
+
+.tip-item {
+    justify-content: flex-start;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.tip-item i {
+    color: #10b981;
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+
+.tip-item span {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 2rem;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.9) 0%, rgba(17, 24, 39, 0.95) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2rem 2rem 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.modal-close {
+    width: 32px;
+    height: 32px;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 0.5rem;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.modal-body {
+    padding: 1rem 2rem;
+}
+
+.modal-body p {
+    color: #9ca3af;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.confirmation-summary {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+.confirmation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.confirmation-item:last-child {
+    margin-bottom: 0;
+}
+
+.confirmation-item.total {
+    border-top: 1px solid rgba(16, 185, 129, 0.3);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.confirmation-label {
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.confirmation-value {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.confirmation-value.buy {
+    color: #10b981;
+}
+
+.confirmation-value.sell {
+    color: #ef4444;
+}
+
+.confirmation-item.total .confirmation-value {
+    color: #10b981;
+    font-size: 1.125rem;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 2rem 2rem;
+    border-top: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.modal-footer .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    color: #ffffff;
+    font-weight: 600;
+    z-index: 1001;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.toast.show {
+    transform: translateX(0);
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .trading-layout {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .trading-sidebar {
+        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+    }
+}
+
+@media (max-width: 768px) {
+    .place-order-page {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .trading-sidebar {
+        grid-template-columns: 1fr;
+        display: flex;
+    }
+    
+    .side-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+    }
+    
+    .balance-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-overlay {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .quantity-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .quantity-controls {
+        flex-direction: row;
+        justify-content: center;
+    }
+    
+    .balance-amount {
+        font-size: 1.5rem;
+    }
+}
+</style>
 
 {% endblock %}

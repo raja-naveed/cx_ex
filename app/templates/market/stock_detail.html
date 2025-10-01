@@ -3,212 +3,294 @@
 {% block title %}{{ stock.ticker }} - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<!-- Header with Stock Info and Quick Actions -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card bg-dark text-white">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <h2 class="mb-1">{{ stock.ticker }}</h2>
-                        <h6 class="text-light mb-3">{{ stock.company }}</h6>
-                        <div class="d-flex align-items-center">
-                            <h3 class="mb-0 me-3" id="current-price" data-stock-id="{{ stock.id }}">
-                                {% if stock.prices_live %}
-                                    ${{ "%.4f"|format(stock.prices_live.last_price) }}
-                                {% else %}
-                                    ${{ "%.4f"|format(stock.initial_price) }}
-                                {% endif %}
-                            </h3>
-                            {% if stock.prices_live %}
-                                {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
-                                {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
-                                <div id="price-change" class="badge fs-6 {% if change > 0 %}bg-success{% elif change < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
-                                    {{ "+$%.4f"|format(change) if change >= 0 else "$%.4f"|format(change) }}
-                                    ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-6 text-end">
-                        {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}" class="btn btn-success me-2">
-                                <i class="fa fa-plus"></i> Buy {{ stock.ticker }}
-                            </a>
-                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}&side=sell" class="btn btn-danger">
-                                <i class="fa fa-minus"></i> Sell {{ stock.ticker }}
-                            </a>
-                        {% else %}
-                            <a href="{{ url_for('auth.login') }}" class="btn btn-light">Login to Trade</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+<div class="stock-page">
+    <div class="stock-background">
+        <div class="stock-pattern"></div>
+        <div class="stock-grid"></div>
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
         </div>
     </div>
-</div>
-
-<!-- Candlestick Chart -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fa fa-chart-line"></i> {{ stock.ticker }} Price Chart
-                    </h5>
-                    <div class="btn-group btn-group-sm" role="group" id="chart-intervals">
-                        <input type="radio" class="btn-check" name="chartInterval" id="interval-1h" value="1h" checked>
-                        <label class="btn btn-outline-primary" for="interval-1h">1H</label>
-
-                        <input type="radio" class="btn-check" name="chartInterval" id="interval-4h" value="4h">
-                        <label class="btn btn-outline-primary" for="interval-4h">4H</label>
-
-                        <input type="radio" class="btn-check" name="chartInterval" id="interval-1d" value="1d">
-                        <label class="btn btn-outline-primary" for="interval-1d">1D</label>
-                    </div>
+    
+    <div class="stock-container">
+        <!-- Stock Header -->
+        <div class="stock-header">
+            <div class="header-nav">
+                <a href="{{ url_for('market.stocks') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Market</span>
+                </a>
+                <div class="header-actions">
+                    <button class="action-btn watchlist" onclick="toggleWatchlist({{ stock.id }})">
+                        <i class="fas fa-eye"></i>
+                        <span>Watch</span>
+                    </button>
+                    <button class="action-btn share" onclick="shareStock()">
+                        <i class="fas fa-share"></i>
+                        <span>Share</span>
+                    </button>
                 </div>
             </div>
-            <div class="card-body p-0">
-                <div id="chart-container" style="height: 500px; position: relative;">
-                    <div id="loading-chart" class="d-flex align-items-center justify-content-center" style="height: 500px;">
-                        <div class="text-center">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading chart...</span>
-                            </div>
-                            <p class="mt-2 text-muted">Loading candlestick chart...</p>
-                        </div>
+            
+            <div class="stock-info">
+                <div class="stock-main">
+                    <div class="stock-symbol">
+                        <h1 class="ticker">{{ stock.ticker }}</h1>
+                        <p class="company">{{ stock.company }}</p>
                     </div>
-                    <canvas id="candlestick-chart" style="display: none;"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Stock Details and Trading Panel -->
-<div class="row">
-    <!-- Market Data -->
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Market Data</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="text-center p-3 bg-light rounded">
-                            <strong class="text-muted d-block">Open</strong>
-                            <span class="h6">
-                                {% if stock.prices_live %}
-                                    ${{ "%.4f"|format(stock.prices_live.open_price) }}
-                                {% else %}
-                                    ${{ "%.4f"|format(stock.initial_price) }}
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center p-3 bg-light rounded">
-                            <strong class="text-muted d-block">High</strong>
-                            <span class="h6 text-success">
-                                {% if stock.prices_live %}
-                                    ${{ "%.4f"|format(stock.prices_live.high_price) }}
-                                {% else %}
-                                    ${{ "%.4f"|format(stock.initial_price) }}
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center p-3 bg-light rounded">
-                            <strong class="text-muted d-block">Low</strong>
-                            <span class="h6 text-danger">
-                                {% if stock.prices_live %}
-                                    ${{ "%.4f"|format(stock.prices_live.low_price) }}
-                                {% else %}
-                                    ${{ "%.4f"|format(stock.initial_price) }}
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="text-center p-3 bg-light rounded">
-                            <strong class="text-muted d-block">Market Cap</strong>
-                            <span class="h6">${{ "{:,.0f}".format(stock.get_market_cap()|float) }}</span>
-                        </div>
+                    <div class="stock-status">
+                        <span class="status-indicator live"></span>
+                        <span class="status-text">Live</span>
                     </div>
                 </div>
-
-                <hr>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <strong>Shares Outstanding:</strong><br>
-                        <span class="text-primary">{{ "{:,}".format(stock.float_shares) }}</span>
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Last Updated:</strong><br>
-                        <span class="text-muted">
+                
+                <div class="stock-price-section">
+                    <div class="price-display">
+                        <span class="currency">$</span>
+                        <span class="price" id="current-price" data-stock-id="{{ stock.id }}">
                             {% if stock.prices_live %}
-                                {{ stock.prices_live.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                {{ "%.4f"|format(stock.prices_live.last_price) }}
                             {% else %}
-                                {{ stock.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                {{ "%.4f"|format(stock.initial_price) }}
                             {% endif %}
                         </span>
                     </div>
+                    {% if stock.prices_live %}
+                        {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
+                        {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
+                        <div class="price-change {{ 'positive' if change > 0 else 'negative' if change < 0 else 'neutral' }}">
+                            <span class="change-amount">
+                                {{ "+$%.4f"|format(change) if change >= 0 else "$%.4f"|format(change) }}
+                            </span>
+                            <span class="change-percent">
+                                ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
+                            </span>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Quick Trade Panel -->
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="fa fa-bolt"></i> Quick Trade
-                </h5>
+        <!-- Trading Actions -->
+        <div class="trading-actions">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}" class="trade-btn buy">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Buy {{ stock.ticker }}</span>
+                </a>
+                <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}&side=sell" class="trade-btn sell">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Sell {{ stock.ticker }}</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="trade-btn login">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login to Trade</span>
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <h2>
+                        <i class="fas fa-chart-line"></i>
+                        {{ stock.ticker }} Price Chart
+                    </h2>
+                    <div class="chart-status">
+                        <span class="status-indicator live"></span>
+                        <span>Real-time</span>
+                    </div>
+                </div>
+                
+                <div class="chart-controls">
+                    <div class="timeframe-tabs">
+                        <button class="timeframe-btn active" data-interval="1h">1H</button>
+                        <button class="timeframe-btn" data-interval="4h">4H</button>
+                        <button class="timeframe-btn" data-interval="1d">1D</button>
+                    </div>
+                    <div class="chart-actions">
+                        <button class="chart-btn" onclick="fullscreenChart()">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <button class="chart-btn" onclick="downloadChart()">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {% if current_user.is_authenticated %}
-                    <div class="mb-3">
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <div class="d-grid">
-                                    <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}"
-                                       class="btn btn-success">
-                                        <i class="fa fa-arrow-up"></i> Buy
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="d-grid">
-                                    <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}&side=sell"
-                                       class="btn btn-danger">
-                                        <i class="fa fa-arrow-down"></i> Sell
-                                    </a>
-                                </div>
+            
+            <div class="chart-container">
+                <div id="loading-chart" class="chart-loading">
+                    <div class="loading-content">
+                        <div class="loading-spinner"></div>
+                        <p>Loading chart data...</p>
+                    </div>
+                </div>
+                <canvas id="candlestick-chart" class="chart-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Market Data and Trading Panel -->
+        <div class="content-grid">
+            <!-- Market Data -->
+            <div class="market-data-section">
+                <div class="section-header">
+                    <h3>
+                        <i class="fas fa-chart-bar"></i>
+                        Market Data
+                    </h3>
+                    <div class="data-refresh">
+                        <button class="refresh-btn" onclick="refreshData()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="data-grid">
+                    <div class="data-card">
+                        <div class="data-icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="data-content">
+                            <div class="data-label">Open</div>
+                            <div class="data-value">
+                                ${{ "%.4f"|format(stock.prices_live.open_price) if stock.prices_live else "%.4f"|format(stock.initial_price) }}
                             </div>
                         </div>
                     </div>
-
-                    <div class="alert alert-info small">
-                        <i class="fa fa-info-circle"></i>
-                        <strong>Market Orders:</strong> Execute immediately at current market price when market is open.
+                    
+                    <div class="data-card">
+                        <div class="data-icon high">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="data-content">
+                            <div class="data-label">High</div>
+                            <div class="data-value">
+                                ${{ "%.4f"|format(stock.prices_live.high_price) if stock.prices_live else "%.4f"|format(stock.initial_price) }}
+                            </div>
+                        </div>
                     </div>
+                    
+                    <div class="data-card">
+                        <div class="data-icon low">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="data-content">
+                            <div class="data-label">Low</div>
+                            <div class="data-value">
+                                ${{ "%.4f"|format(stock.prices_live.low_price) if stock.prices_live else "%.4f"|format(stock.initial_price) }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="data-card">
+                        <div class="data-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="data-content">
+                            <div class="data-label">Market Cap</div>
+                            <div class="data-value">${{ "{:,.0f}".format(stock.get_market_cap()|float) }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="additional-data">
+                    <div class="data-row">
+                        <div class="data-item">
+                            <span class="item-label">Shares Outstanding</span>
+                            <span class="item-value">{{ "{:,}".format(stock.float_shares) }}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="item-label">Last Updated</span>
+                            <span class="item-value">
+                                {% if stock.prices_live %}
+                                    {{ stock.prices_live.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                {% else %}
+                                    {{ stock.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                    <div class="text-center">
-                        <small class="text-muted">
-                            Your Cash Balance: <strong>${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</strong>
-                        </small>
+            <!-- Trading Panel -->
+            <div class="trading-panel">
+                <div class="panel-header">
+                    <h3>
+                        <i class="fas fa-bolt"></i>
+                        Quick Trade
+                    </h3>
+                    <div class="panel-status">
+                        <span class="status-indicator live"></span>
+                        <span>Market Open</span>
+                    </div>
+                </div>
+                
+                {% if current_user.is_authenticated %}
+                    <div class="trading-options">
+                        <div class="trade-buttons">
+                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}" class="trade-option buy">
+                                <div class="option-icon">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                                <div class="option-content">
+                                    <div class="option-title">Buy {{ stock.ticker }}</div>
+                                    <div class="option-subtitle">Market Order</div>
+                                </div>
+                            </a>
+                            
+                            <a href="{{ url_for('trading.place_order') }}?stock_id={{ stock.id }}&side=sell" class="trade-option sell">
+                                <div class="option-icon">
+                                    <i class="fas fa-arrow-down"></i>
+                                </div>
+                                <div class="option-content">
+                                    <div class="option-title">Sell {{ stock.ticker }}</div>
+                                    <div class="option-subtitle">Market Order</div>
+                                </div>
+                            </a>
+                        </div>
+                        
+                        <div class="trading-info">
+                            <div class="info-card">
+                                <div class="info-header">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Market Orders</span>
+                                </div>
+                                <div class="info-text">
+                                    Execute immediately at current market price when market is open.
+                                </div>
+                            </div>
+                            
+                            <div class="balance-info">
+                                <div class="balance-label">Your Cash Balance</div>
+                                <div class="balance-amount">${{ "{:,.2f}".format(current_user.get_cash_balance()) }}</div>
+                            </div>
+                        </div>
                     </div>
                 {% else %}
-                    <div class="text-center">
-                        <p class="text-muted mb-3">Please login to start trading</p>
-                        <div class="d-grid gap-2">
-                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
-                            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary">Create Account</a>
+                    <div class="login-prompt">
+                        <div class="prompt-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="prompt-content">
+                            <h4>Login Required</h4>
+                            <p>Please login to start trading with {{ stock.ticker }}</p>
+                        </div>
+                        <div class="prompt-actions">
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Login</span>
+                            </a>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-secondary">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Register</span>
+                            </a>
                         </div>
                     </div>
                 {% endif %}
@@ -217,15 +299,1470 @@
     </div>
 </div>
 
-<div class="mt-4">
-    <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary">
-        <i class="fa fa-arrow-left"></i> Back to Market
-    </a>
-</div>
+<script>
+// Global variables
+let chart = null;
+const stockId = {{ stock.id }};
+let currentInterval = '1h';
+let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeStockPage();
+    setupEventListeners();
+    startRealTimeUpdates();
+});
+
+function initializeStockPage() {
+    // Initialize chart
+    loadChart(currentInterval);
+    
+    // Update watchlist button
+    updateWatchlistButton();
+}
+
+function setupEventListeners() {
+    // Timeframe buttons
+    document.querySelectorAll('.timeframe-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.timeframe-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentInterval = this.dataset.interval;
+            loadChart(currentInterval);
+        });
+    });
+}
+
+function toggleWatchlist(stockId) {
+    const index = watchlist.indexOf(stockId);
+    if (index > -1) {
+        watchlist.splice(index, 1);
+    } else {
+        watchlist.push(stockId);
+    }
+    
+    localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    updateWatchlistButton();
+}
+
+function updateWatchlistButton() {
+    const watchlistBtn = document.querySelector('.watchlist');
+    const isWatched = watchlist.includes(stockId);
+    
+    if (watchlistBtn) {
+        watchlistBtn.classList.toggle('active', isWatched);
+        watchlistBtn.querySelector('span').textContent = isWatched ? 'Watched' : 'Watch';
+    }
+}
+
+function shareStock() {
+    if (navigator.share) {
+        navigator.share({
+            title: `{{ stock.ticker }} - {{ stock.company }}`,
+            text: `Check out {{ stock.ticker }} on ZEBRAT TRADING`,
+            url: window.location.href
+        });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        // Show toast notification
+        showToast('Link copied to clipboard!');
+    }
+}
+
+function refreshData() {
+    location.reload();
+}
+
+function fullscreenChart() {
+    const chartContainer = document.querySelector('.chart-container');
+    if (chartContainer.requestFullscreen) {
+        chartContainer.requestFullscreen();
+    }
+}
+
+function downloadChart() {
+    const canvas = document.getElementById('candlestick-chart');
+    const link = document.createElement('a');
+    link.download = `{{ stock.ticker }}-chart-${currentInterval}.png`;
+    link.href = canvas.toDataURL();
+    link.click();
+}
+
+function startRealTimeUpdates() {
+    setInterval(function() {
+        fetch('/market/prices')
+            .then(response => response.json())
+            .then(data => {
+                if (data[stockId]) {
+                    const priceElement = document.getElementById('current-price');
+                    if (priceElement) {
+                        priceElement.textContent = parseFloat(data[stockId].last_price).toFixed(4);
+                    }
+                }
+            })
+            .catch(error => console.log('Price update failed:', error));
+    }, 5000);
+}
+
+function showToast(message) {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Chart functionality
+function loadChart(interval) {
+    const loadingDiv = document.getElementById('loading-chart');
+    const chartCanvas = document.getElementById('candlestick-chart');
+
+    // Show loading
+    loadingDiv.style.display = 'flex';
+    chartCanvas.style.display = 'none';
+
+    // Fetch candle data
+    fetch(`/market/api/stock/${stockId}/candles?interval=${interval}&limit=100`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showChartError(data.error);
+                return;
+            }
+            renderChart(data);
+        })
+        .catch(error => {
+            console.error('Error loading chart data:', error);
+            showChartError('Failed to load chart data');
+        });
+}
+
+function renderChart(data) {
+    const ctx = document.getElementById('candlestick-chart').getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (chart) {
+        chart.destroy();
+    }
+
+    // Prepare data for Chart.js
+    const chartData = data.data.map(candle => ({
+        x: candle.x,
+        o: candle.open,
+        h: candle.high,
+        l: candle.low,
+        c: candle.close
+    }));
+
+    // Hide loading and show chart
+    document.getElementById('loading-chart').style.display = 'none';
+    document.getElementById('candlestick-chart').style.display = 'block';
+
+    // Create the chart
+    chart = new Chart(ctx, {
+        type: 'candlestick',
+        data: {
+            datasets: [{
+                label: `${data.stock.ticker} Price`,
+                data: chartData,
+                borderColor: {
+                    up: '#10b981',
+                    down: '#ef4444',
+                    unchanged: '#9ca3af'
+                },
+                backgroundColor: {
+                    up: 'rgba(16, 185, 129, 0.1)',
+                    down: 'rgba(239, 68, 68, 0.1)',
+                    unchanged: 'rgba(153, 153, 153, 0.1)'
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: currentInterval === '1h' ? 'hour' :
+                              currentInterval === '4h' ? 'day' : 'day',
+                        displayFormats: {
+                            hour: 'MMM d, HH:mm',
+                            day: 'MMM d'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Time',
+                        color: '#9ca3af'
+                    },
+                    grid: {
+                        color: 'rgba(55, 65, 81, 0.3)'
+                    },
+                    ticks: {
+                        color: '#9ca3af'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Price ($)',
+                        color: '#9ca3af'
+                    },
+                    grid: {
+                        color: 'rgba(55, 65, 81, 0.3)'
+                    },
+                    ticks: {
+                        color: '#9ca3af'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#10b981',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    callbacks: {
+                        title: function(context) {
+                            const date = new Date(context[0].parsed.x);
+                            return date.toLocaleString();
+                        },
+                        label: function(context) {
+                            const data = context.raw;
+                            return [
+                                `Open: $${data.o.toFixed(4)}`,
+                                `High: $${data.h.toFixed(4)}`,
+                                `Low: $${data.l.toFixed(4)}`,
+                                `Close: $${data.c.toFixed(4)}`
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function showChartError(message) {
+    document.getElementById('loading-chart').innerHTML = `
+        <div class="chart-error">
+            <div class="error-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h4>Chart Unavailable</h4>
+            <p>${message}</p>
+            <small>Chart data may not be available yet. Try starting the candle aggregator service.</small>
+        </div>
+    `;
+}
+
+// Custom candlestick chart type for Chart.js
+Chart.register({
+    id: 'candlestick',
+    defaults: {
+        dataElementType: 'candlestick',
+        datasetElementType: false,
+        color: {
+            up: '#10b981',
+            down: '#ef4444',
+            unchanged: '#9ca3af'
+        }
+    },
+    scales: {
+        x: {
+            type: 'time'
+        },
+        y: {
+            type: 'linear'
+        }
+    }
+});
+
+// Simple candlestick implementation
+class CandlestickElement extends Chart.Element {
+    draw(ctx) {
+        const {x, open, high, low, close} = this.getProps(['x', 'open', 'high', 'low', 'close']);
+
+        const isUp = close >= open;
+        const color = isUp ? '#10b981' : '#ef4444';
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = isUp ? 'rgba(16, 185, 129, 0.1)' : color;
+        ctx.lineWidth = 2;
+
+        // Draw the wick (high-low line)
+        ctx.beginPath();
+        ctx.moveTo(x, high);
+        ctx.lineTo(x, low);
+        ctx.stroke();
+
+        // Draw the body (open-close rectangle)
+        const bodyHeight = Math.abs(close - open);
+        const bodyTop = Math.max(open, close);
+        const bodyWidth = 12; // Wider candles for better visibility
+
+        ctx.fillRect(x - bodyWidth/2, bodyTop, bodyWidth, bodyHeight);
+        ctx.strokeRect(x - bodyWidth/2, bodyTop, bodyWidth, bodyHeight);
+    }
+}
+
+CandlestickElement.id = 'candlestick';
+CandlestickElement.defaults = {};
+
+Chart.register(CandlestickElement);
+
+Chart.controllers.candlestick = Chart.DatasetController.extend({
+    dataElementType: CandlestickElement,
+
+    update: function(mode) {
+        const meta = this.getMeta();
+        const dataset = this.getDataset();
+        const data = dataset.data || [];
+
+        meta.data.forEach((element, index) => {
+            const dataPoint = data[index];
+            if (dataPoint) {
+                element.x = this.chart.scales.x.getPixelForValue(dataPoint.x);
+                element.open = this.chart.scales.y.getPixelForValue(dataPoint.o);
+                element.high = this.chart.scales.y.getPixelForValue(dataPoint.h);
+                element.low = this.chart.scales.y.getPixelForValue(dataPoint.l);
+                element.close = this.chart.scales.y.getPixelForValue(dataPoint.c);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
 
 <!-- Chart.js and Candlestick Chart Script -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<style>
+/* Enhanced Stock Detail Page Styles */
+.stock-page {
+    min-height: 100vh;
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+    overflow-x: hidden;
+}
+
+.stock-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.stock-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: float 25s ease-in-out infinite;
+}
+
+.stock-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-element {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border-radius: 50%;
+    animation: floatElement 8s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: -5%;
+    animation-delay: 3s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: 6s;
+}
+
+@keyframes floatElement {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg); 
+        opacity: 0.6;
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Stock Container */
+.stock-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Stock Header */
+.stock-header {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.75rem;
+    color: #10b981;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: translateY(-1px);
+    color: #ffffff;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.5rem;
+    color: #10b981;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: translateY(-1px);
+}
+
+.action-btn.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.action-btn.share {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+.action-btn.share:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.stock-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.stock-main {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.stock-symbol {
+    flex: 1;
+}
+
+.ticker {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.02em;
+}
+
+.company {
+    font-size: 1.25rem;
+    color: #9ca3af;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.stock-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 1rem;
+    color: #10b981;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.stock-price-section {
+    text-align: right;
+}
+
+.price-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.currency {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #10b981;
+}
+
+.price {
+    font-size: 4rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+
+.price-change {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.change-amount {
+    font-weight: 700;
+}
+
+.change-percent {
+    font-weight: 500;
+}
+
+.price-change.positive {
+    color: #10b981;
+}
+
+.price-change.negative {
+    color: #ef4444;
+}
+
+.price-change.neutral {
+    color: #9ca3af;
+}
+
+/* Trading Actions */
+.trading-actions {
+    display: flex;
+    gap: 1rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.trade-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.trade-btn.buy {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.trade-btn.buy:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.trade-btn.sell {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px 0 rgba(239, 68, 68, 0.3);
+}
+
+.trade-btn.sell:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(239, 68, 68, 0.4);
+}
+
+.trade-btn.login {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.3);
+}
+
+.trade-btn.login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(59, 130, 246, 0.4);
+}
+
+/* Chart Section */
+.chart-section {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.chart-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.chart-title h2 {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.chart-title i {
+    color: #10b981;
+}
+
+.chart-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 1rem;
+    color: #10b981;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.chart-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.timeframe-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}
+
+.timeframe-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.timeframe-btn.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.timeframe-btn:hover:not(.active) {
+    color: #ffffff;
+}
+
+.chart-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chart-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.5rem;
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: translateY(-1px);
+}
+
+.chart-container {
+    height: 500px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.loading-content {
+    text-align: center;
+    color: #ffffff;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(16, 185, 129, 0.3);
+    border-top: 3px solid #10b981;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.chart-canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-error {
+    text-align: center;
+    color: #ffffff;
+    padding: 2rem;
+}
+
+.error-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(248, 113, 113, 0.05) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.error-icon i {
+    font-size: 1.5rem;
+    color: #ef4444;
+}
+
+.chart-error h4 {
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.chart-error p {
+    color: #9ca3af;
+    margin-bottom: 1rem;
+}
+
+.chart-error small {
+    color: #6b7280;
+}
+
+/* Content Grid */
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+/* Market Data Section */
+.market-data-section {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.section-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.section-header i {
+    color: #10b981;
+}
+
+.refresh-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.5rem;
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.refresh-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: rotate(180deg);
+}
+
+.data-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.data-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.data-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+}
+
+.data-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.data-icon.high {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.data-icon.low {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.data-icon i {
+    font-size: 1rem;
+    color: #000000;
+}
+
+.data-icon.low i {
+    color: #ffffff;
+}
+
+.data-content {
+    flex: 1;
+}
+
+.data-label {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+}
+
+.data-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.additional-data {
+    border-top: 1px solid rgba(55, 65, 81, 0.3);
+    padding-top: 1.5rem;
+}
+
+.data-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.data-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.item-label {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+.item-value {
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* Trading Panel */
+.trading-panel {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.panel-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.panel-header i {
+    color: #10b981;
+}
+
+.panel-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 1rem;
+    color: #10b981;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.trade-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.trade-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.trade-option:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+}
+
+.trade-option.buy:hover {
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+.trade-option.sell:hover {
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.option-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.trade-option.buy .option-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.trade-option.sell .option-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.option-icon i {
+    font-size: 1.25rem;
+    color: #000000;
+}
+
+.trade-option.sell .option-icon i {
+    color: #ffffff;
+}
+
+.option-content {
+    flex: 1;
+}
+
+.option-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.option-subtitle {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+.trading-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info-card {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+.info-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.info-header i {
+    color: #10b981;
+    font-size: 0.875rem;
+}
+
+.info-header span {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #10b981;
+}
+
+.info-text {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    line-height: 1.4;
+}
+
+.balance-info {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+}
+
+.balance-label {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-bottom: 0.5rem;
+}
+
+.balance-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #10b981;
+}
+
+/* Login Prompt */
+.login-prompt {
+    text-align: center;
+    padding: 2rem;
+}
+
+.prompt-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.prompt-icon i {
+    font-size: 1.5rem;
+    color: #10b981;
+}
+
+.prompt-content h4 {
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.prompt-content p {
+    color: #9ca3af;
+    margin-bottom: 2rem;
+}
+
+.prompt-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #374151;
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    color: #ffffff;
+    font-weight: 500;
+    z-index: 1000;
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .data-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .stock-page {
+        padding: 1rem;
+    }
+    
+    .stock-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .stock-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .ticker {
+        font-size: 2rem;
+    }
+    
+    .price {
+        font-size: 2.5rem;
+    }
+    
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .chart-controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .trading-actions {
+        flex-direction: column;
+    }
+    
+    .data-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .prompt-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .ticker {
+        font-size: 1.5rem;
+    }
+    
+    .price {
+        font-size: 2rem;
+    }
+    
+    .company {
+        font-size: 1rem;
+    }
+    
+    .chart-container {
+        height: 300px;
+    }
+    
+    .timeframe-tabs {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .trade-option {
+        padding: 0.75rem 1rem;
+    }
+    
+    .option-icon {
+        width: 40px;
+        height: 40px;
+    }
+}
+</style>
 
 <script>
 let chart = null;
