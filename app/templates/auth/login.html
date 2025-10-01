@@ -3,101 +3,862 @@
 {% block title %}Login - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="flex justify-center">
-    <div style="max-width: 400px; width: 100%;">
-        <div class="card animate-slide-up">
+<div class="auth-page">
+    <div class="auth-background">
+        <div class="auth-pattern"></div>
+        <div class="auth-grid"></div>
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
+        </div>
+    </div>
+    
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Brand Header -->
+            <div class="auth-brand">
+                <div class="brand-logo">
+                    <span class="brand-icon">Z</span>
+                </div>
+                <h1 class="brand-text">ZEBRAT TRADING</h1>
+            </div>
+            
+            <!-- Trust Badge -->
+            <div class="trust-badge">
+                <i class="fas fa-shield-check"></i>
+                <span>Secure Trading Platform</span>
+            </div>
+            
             <!-- Header -->
-            <div class="text-center mb-5">
-                <h2 class="card-title mb-2">Welcome back</h2>
-                <p class="text-gray-400 text-sm">Practice trading in a risk‑free environment</p>
+            <div class="auth-header">
+                <h2 class="auth-title">Welcome back, trader</h2>
+                <p class="auth-subtitle">Continue your trading journey in our risk-free environment</p>
             </div>
 
             <!-- Login Form -->
-            <form method="POST" class="space-y-4">
+            <form method="POST" class="auth-form">
                 {{ form.hidden_tag() }}
                 
                 <div class="form-group">
                     <label class="form-label">
-                        <i class="fas fa-envelope mr-2"></i>Email Address
+                        <i class="fas fa-envelope"></i>
+                        <span>Email Address</span>
                     </label>
-                    {{ form.email(class="form-control", placeholder="Enter your email address", autocomplete="email", autofocus=true) }}
+                    <div class="input-wrapper">
+                        {{ form.email(class="form-control", placeholder="trader@example.com", autocomplete="email", autofocus=true) }}
+                        <div class="input-icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
                     {% for error in form.email.errors %}
-                        <div class="form-error">{{ error }}</div>
+                        <div class="form-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ error }}
+                        </div>
                     {% endfor %}
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">
-                        <i class="fas fa-lock mr-2"></i>Password
+                        <i class="fas fa-lock"></i>
+                        <span>Password</span>
                     </label>
-                    {{ form.password(class="form-control", placeholder="Enter your password", autocomplete="current-password") }}
+                    <div class="input-wrapper">
+                        {{ form.password(class="form-control", placeholder="Enter your password", autocomplete="current-password", id="password") }}
+                        <div class="input-icon password-toggle">
+                            <i class="fas fa-eye" id="togglePassword"></i>
+                        </div>
+                    </div>
                     {% for error in form.password.errors %}
-                        <div class="form-error">{{ error }}</div>
+                        <div class="form-error">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ error }}
+                        </div>
                     {% endfor %}
                 </div>
 
-                <div class="flex items-center justify-between mb-4">
-                    <label class="flex items-center text-sm text-gray-400">
-                        <input type="checkbox" class="mr-2" name="remember">
-                        Remember me
+                <div class="form-options">
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" name="remember" id="remember">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Remember me for 30 days</span>
                     </label>
-                    <a href="#" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+                    <a href="#" class="forgot-link">
+                        <i class="fas fa-key"></i>
                         Forgot password?
                     </a>
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-full">
-                    <i class="fas fa-sign-in-alt mr-2"></i>
-                    Sign In
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Sign In to Trading Dashboard</span>
+                    <div class="btn-shine"></div>
                 </button>
             </form>
 
             <!-- Divider -->
-            <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-gray-700"></div>
-                </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="px-2 bg-black text-gray-500">Or continue with</span>
-                </div>
+            <div class="auth-divider">
+                <div class="divider-line"></div>
+                <span class="divider-text">Or continue with</span>
+                <div class="divider-line"></div>
             </div>
 
             <!-- OAuth Button -->
-            <button type="button" class="btn btn-secondary btn-full" disabled>
-                <i class="fab fa-google mr-2"></i>
-                Continue with Google
+            <button type="button" class="btn btn-oauth" disabled>
+                <i class="fab fa-google"></i>
+                <span>Continue with Google</span>
             </button>
 
             <!-- Register Link -->
-            <div class="text-center mt-6">
-                <p class="text-sm text-gray-400">
-                    Don't have an account? 
-                    <a href="{{ url_for('auth.register') }}" class="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
-                        Create one here
+            <div class="auth-footer">
+                <p class="footer-text">
+                    New to trading? 
+                    <a href="{{ url_for('auth.register') }}" class="register-link">
+                        <i class="fas fa-user-plus"></i>
+                        Create your account
                     </a>
                 </p>
             </div>
 
             <!-- Demo Account Info -->
-            <div class="mt-6 p-4 bg-gray-800 rounded-lg border border-gray-700">
-                <h3 class="text-sm font-medium text-gray-300 mb-2 flex items-center">
-                    <i class="fas fa-bolt mr-2 text-emerald-400"></i>
-                    Demo Account
-                </h3>
-                <p class="text-xs text-gray-400 mb-2">
-                    Try the platform with a demo account:
+            <div class="demo-card">
+                <div class="demo-header">
+                    <i class="fas fa-bolt"></i>
+                    <h3>Demo Account Available</h3>
+                </div>
+                <p class="demo-description">
+                    Experience the platform instantly with our demo account
                 </p>
-                <div class="text-xs text-gray-500 space-y-1">
-                    <div><strong>Email:</strong> demo@example.com</div>
-                    <div><strong>Password:</strong> demo123</div>
+                <div class="demo-credentials">
+                    <div class="credential-item">
+                        <span class="credential-label">Email:</span>
+                        <span class="credential-value">demo@example.com</span>
+                        <button class="copy-btn" onclick="copyToClipboard('demo@example.com')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="credential-item">
+                        <span class="credential-label">Password:</span>
+                        <span class="credential-value">demo123</span>
+                        <button class="copy-btn" onclick="copyToClipboard('demo123')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <style>
-.space-y-4 > * + * { margin-top: 1rem; }
-.space-y-1 > * + * { margin-top: 0.25rem; }
+/* Enhanced Login Page Styles */
+.auth-page {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+    overflow: hidden;
+}
+
+.auth-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+}
+
+.auth-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: float 25s ease-in-out infinite;
+}
+
+.auth-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-element {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border-radius: 50%;
+    animation: floatElement 8s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: -5%;
+    animation-delay: 3s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: 6s;
+}
+
+@keyframes floatElement {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg); 
+        opacity: 0.6;
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Auth Container */
+.auth-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 420px;
+}
+
+.auth-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.9) 0%, rgba(17, 24, 39, 0.95) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 2rem;
+    padding: 3rem 2.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(16, 185, 129, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
+}
+
+/* Brand Header */
+.auth-brand {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.brand-logo {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    animation: logoGlow 3s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+    0%, 100% { box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3); }
+    50% { box-shadow: 0 12px 35px rgba(16, 185, 129, 0.5); }
+}
+
+.brand-icon {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #000000;
+}
+
+.brand-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+/* Trust Badge */
+.trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 2rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #10b981;
+    margin: 0 auto 2rem;
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.trust-badge i {
+    font-size: 1rem;
+}
+
+/* Auth Header */
+.auth-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.auth-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.auth-subtitle {
+    font-size: 1rem;
+    color: #9ca3af;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Auth Form */
+.auth-form {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.75rem;
+}
+
+.form-label i {
+    color: #10b981;
+    width: 16px;
+    text-align: center;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.form-control {
+    width: 100%;
+    padding: 1rem 1.25rem 1rem 3rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.form-control::placeholder {
+    color: #6b7280;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #10b981;
+    background: rgba(0, 0, 0, 0.7);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.input-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #10b981;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.password-toggle {
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.password-toggle:hover {
+    color: #10b981;
+}
+
+.form-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.form-error i {
+    font-size: 0.75rem;
+}
+
+/* Form Options */
+.form-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 0.375rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.checkbox-wrapper input[type="checkbox"]:checked + .checkmark {
+    background: #10b981;
+    border-color: #10b981;
+}
+
+.checkbox-wrapper input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #000000;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.checkbox-label {
+    font-size: 0.875rem;
+    color: #9ca3af;
+}
+
+.forgot-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #10b981;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.forgot-link:hover {
+    color: #34d399;
+    transform: translateY(-1px);
+}
+
+.forgot-link i {
+    font-size: 0.75rem;
+}
+
+/* Enhanced Button */
+.btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.btn-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn:hover .btn-shine {
+    left: 100%;
+}
+
+/* OAuth Button */
+.btn-oauth {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 2rem;
+}
+
+.btn-oauth:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-oauth:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Auth Divider */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(55, 65, 81, 0.5), transparent);
+}
+
+.divider-text {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Auth Footer */
+.auth-footer {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.footer-text {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.register-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #10b981;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.register-link:hover {
+    color: #34d399;
+    transform: translateY(-1px);
+}
+
+.register-link i {
+    font-size: 0.75rem;
+}
+
+/* Demo Card */
+.demo-card {
+    background: linear-gradient(145deg, rgba(16, 185, 129, 0.05) 0%, rgba(52, 211, 153, 0.02) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.demo-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.demo-header i {
+    color: #10b981;
+    font-size: 1.25rem;
+}
+
+.demo-header h3 {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.demo-description {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.demo-credentials {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.credential-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+}
+
+.credential-label {
+    color: #9ca3af;
+    font-size: 0.75rem;
+    font-weight: 500;
+    min-width: 60px;
+}
+
+.credential-value {
+    flex: 1;
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+.copy-btn {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.375rem;
+    padding: 0.375rem;
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.copy-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: scale(1.05);
+}
+
+.copy-btn i {
+    font-size: 0.75rem;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-page {
+        padding: 1rem;
+    }
+    
+    .auth-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .auth-title {
+        font-size: 1.5rem;
+    }
+    
+    .form-options {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .demo-credentials {
+        gap: 0.5rem;
+    }
+    
+    .credential-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .credential-label {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 1.5rem 1rem;
+        border-radius: 1.5rem;
+    }
+    
+    .auth-title {
+        font-size: 1.25rem;
+    }
+    
+    .brand-logo {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .brand-icon {
+        font-size: 1.25rem;
+    }
+}
 </style>
+
+<script>
+// Password toggle functionality
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordField = document.getElementById('password');
+    const toggleIcon = this;
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+});
+
+// Copy to clipboard functionality
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success feedback
+        const btn = event.target.closest('.copy-btn');
+        const icon = btn.querySelector('i');
+        const originalIcon = icon.className;
+        
+        icon.className = 'fas fa-check';
+        btn.style.background = 'rgba(16, 185, 129, 0.3)';
+        
+        setTimeout(() => {
+            icon.className = originalIcon;
+            btn.style.background = '';
+        }, 1000);
+    });
+}
+
+// Form validation feedback
+document.querySelectorAll('.form-control').forEach(input => {
+    input.addEventListener('blur', function() {
+        if (this.value.trim() !== '') {
+            this.style.borderColor = '#10b981';
+        } else {
+            this.style.borderColor = '';
+        }
+    });
+});
+</script>
 {% endblock %}

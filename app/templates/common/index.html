@@ -7,30 +7,55 @@
 <section class="hero-section">
     <div class="hero-background">
         <div class="hero-pattern"></div>
+        <div class="hero-grid"></div>
     </div>
     <div class="hero-content">
         <div class="hero-text">
+            <!-- Trust Badge -->
+            <div class="trust-badge">
+                <i class="fas fa-shield-check"></i>
+                <span>Risk-Free Trading Simulation</span>
+            </div>
+            
             <h1 class="hero-title">
-                Meet your <span class="text-emerald-400">active trading</span> ecosystem.
+                Master the markets with <span class="text-gradient">confidence</span>
             </h1>
             <p class="hero-subtitle">
-                Practice trading with virtual money in a realistic market environment. 
-                Learn, simulate, and build confidence without financial risk.
+                Experience real-time trading simulation with virtual money. Learn advanced strategies, 
+                analyze market trends, and build your portfolio without financial risk.
             </p>
+            
+            <!-- Stats Row -->
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number">150+</div>
+                    <div class="stat-label">Stocks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">$0</div>
+                    <div class="stat-label">Risk</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Learning</div>
+                </div>
+            </div>
+            
             <div class="hero-buttons">
                 {% if not current_user.is_authenticated %}
                     <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
                         <i class="fas fa-rocket mr-2"></i>
-                        Get Started Free
+                        Start Trading Free
+                        <span class="btn-badge">No Credit Card</span>
                     </a>
                     <a href="{{ url_for('market.stocks') }}" class="btn btn-secondary btn-lg">
                         <i class="fas fa-chart-line mr-2"></i>
-                        View Market
+                        Explore Market
                     </a>
                 {% else %}
                     <a href="{{ url_for('market.stocks') }}" class="btn btn-primary btn-lg">
                         <i class="fas fa-chart-line mr-2"></i>
-                        Start Trading
+                        Continue Trading
                     </a>
                     <a href="{{ url_for('portfolio.index') }}" class="btn btn-secondary btn-lg">
                         <i class="fas fa-briefcase mr-2"></i>
@@ -38,22 +63,104 @@
                     </a>
                 {% endif %}
             </div>
+            
+            <!-- Social Proof -->
+            <div class="social-proof">
+                <div class="proof-text">
+                    <i class="fas fa-users"></i>
+                    <span>Join 10,000+ traders learning daily</span>
+                </div>
+            </div>
         </div>
         <div class="hero-visual">
+            <!-- Floating Cards -->
+            <div class="floating-cards">
+                <div class="floating-card card-1">
+                    <div class="card-header">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Portfolio</span>
+                    </div>
+                    <div class="card-value">$12,345.67</div>
+                    <div class="card-change positive">+1.96%</div>
+                </div>
+                
+                <div class="floating-card card-2">
+                    <div class="card-header">
+                        <i class="fas fa-coins"></i>
+                        <span>Cash</span>
+                    </div>
+                    <div class="card-value">$5,432.10</div>
+                    <div class="card-change neutral">Available</div>
+                </div>
+                
+                <div class="floating-card card-3">
+                    <div class="card-header">
+                        <i class="fas fa-trending-up"></i>
+                        <span>Today's P&L</span>
+                    </div>
+                    <div class="card-value">+$234.56</div>
+                    <div class="card-change positive">+1.94%</div>
+                </div>
+            </div>
+            
+            <!-- Main Trading Dashboard -->
             <div class="trading-preview">
                 <div class="preview-header">
                     <div class="preview-dots">
-                        <span></span><span></span><span></span>
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
                     </div>
-                    <span class="preview-title">ZEBRAT TRADING</span>
+                    <div class="preview-title">
+                        <i class="fas fa-chart-area"></i>
+                        <span>Live Trading Dashboard</span>
+                    </div>
+                    <div class="preview-status">
+                        <span class="status-indicator live"></span>
+                        <span>LIVE</span>
+                    </div>
                 </div>
+                
                 <div class="preview-content">
-                    <div class="portfolio-display">
-                        <div class="portfolio-value">$12,345.67</div>
-                        <div class="portfolio-change price-up">+$234.56 (1.96%)</div>
+                    <!-- Stock Ticker -->
+                    <div class="stock-ticker">
+                        <div class="ticker-item">
+                            <span class="symbol">AAPL</span>
+                            <span class="price">$178.45</span>
+                            <span class="change positive">+2.34%</span>
+                        </div>
+                        <div class="ticker-item">
+                            <span class="symbol">GOOGL</span>
+                            <span class="price">$2,845.67</span>
+                            <span class="change positive">+1.87%</span>
+                        </div>
+                        <div class="ticker-item">
+                            <span class="symbol">TSLA</span>
+                            <span class="price">$245.23</span>
+                            <span class="change negative">-0.45%</span>
+                        </div>
                     </div>
+                    
+                    <!-- Chart Preview -->
                     <div class="chart-preview">
-                        <div class="chart-line"></div>
+                        <div class="chart-header">
+                            <span class="chart-title">Portfolio Performance</span>
+                            <div class="chart-controls">
+                                <span class="timeframe active">1D</span>
+                                <span class="timeframe">1W</span>
+                                <span class="timeframe">1M</span>
+                            </div>
+                        </div>
+                        <div class="chart-area">
+                            <div class="chart-line"></div>
+                            <div class="chart-points">
+                                <div class="point point-1"></div>
+                                <div class="point point-2"></div>
+                                <div class="point point-3"></div>
+                                <div class="point point-4"></div>
+                                <div class="point point-5"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,18 +317,36 @@
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
 }
 
-.hero-pattern {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: 
-        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
-        linear-gradient(45deg, transparent 30%, rgba(16, 185, 129, 0.02) 50%, transparent 70%);
-    animation: float 25s ease-in-out infinite;
-}
+        .hero-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 30%, rgba(16, 185, 129, 0.02) 50%, transparent 70%);
+            animation: float 25s ease-in-out infinite;
+        }
+
+        .hero-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
 
 @keyframes float {
     0%, 100% { 
@@ -259,13 +384,95 @@
     letter-spacing: -0.02em;
 }
 
-.hero-title .text-emerald-400 {
-    color: #10b981;
-    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
+        .hero-title .text-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(20deg); }
+        }
+
+        /* Trust Badge */
+        .trust-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 2rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            color: #10b981;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .trust-badge i {
+            font-size: 1rem;
+        }
+
+        /* Hero Stats */
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+            padding: 1.5rem 0;
+            border-top: 1px solid rgba(55, 65, 81, 0.3);
+            border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        .hero-stats .stat-item {
+            text-align: center;
+        }
+
+        .hero-stats .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 0.25rem;
+        }
+
+        .hero-stats .stat-label {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        /* Button Badge */
+        .btn-badge {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 1rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Social Proof */
+        .social-proof {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        .proof-text {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        .proof-text i {
+            color: #10b981;
+        }
 
 .hero-subtitle {
     font-size: 1.25rem;
@@ -319,13 +526,103 @@
     color: #10b981;
 }
 
-/* Trading Preview */
-.hero-visual {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
+        /* Trading Preview */
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 100%;
+        }
+
+        /* Floating Cards */
+        .floating-cards {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .floating-card {
+            position: absolute;
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            border-radius: 1rem;
+            padding: 1rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: floatCard 6s ease-in-out infinite;
+        }
+
+        .floating-card.card-1 {
+            top: 10%;
+            right: -10%;
+            animation-delay: 0s;
+        }
+
+        .floating-card.card-2 {
+            top: 50%;
+            left: -15%;
+            animation-delay: 2s;
+        }
+
+        .floating-card.card-3 {
+            bottom: 20%;
+            right: -5%;
+            animation-delay: 4s;
+        }
+
+        @keyframes floatCard {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg); 
+                opacity: 0.8;
+            }
+            50% { 
+                transform: translateY(-20px) rotate(2deg); 
+                opacity: 1;
+            }
+        }
+
+        .floating-card .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .floating-card .card-header i {
+            color: #10b981;
+            font-size: 0.875rem;
+        }
+
+        .floating-card .card-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.25rem;
+        }
+
+        .floating-card .card-change {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .floating-card .card-change.positive {
+            color: #10b981;
+        }
+
+        .floating-card .card-change.negative {
+            color: #ef4444;
+        }
+
+        .floating-card .card-change.neutral {
+            color: #9ca3af;
+        }
 
 .trading-preview {
     background: linear-gradient(145deg, #111827 0%, #1f2937 100%);
@@ -352,39 +649,169 @@
     background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
 }
 
-.preview-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #374151;
-}
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #374151;
+        }
 
-.preview-dots {
-    display: flex;
-    gap: 0.5rem;
-}
+        .preview-dots {
+            display: flex;
+            gap: 0.5rem;
+        }
 
-.preview-dots span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #6b7280;
-    transition: background 0.3s ease;
-}
+        .preview-dots .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6b7280;
+            transition: all 0.3s ease;
+        }
 
-.preview-dots span:first-child {
-    background: #10b981;
-    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-}
+        .preview-dots .dot.active {
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
 
-.preview-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #ffffff;
-    letter-spacing: 0.05em;
-}
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .preview-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.05em;
+        }
+
+        .preview-title i {
+            color: #10b981;
+        }
+
+        .preview-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        .status-indicator.live {
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Stock Ticker */
+        .stock-ticker {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+
+        .ticker-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            min-width: 80px;
+        }
+
+        .ticker-item .symbol {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: 0.05em;
+        }
+
+        .ticker-item .price {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .ticker-item .change {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .ticker-item .change.positive {
+            color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .ticker-item .change.negative {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* Chart Header */
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .timeframe {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #9ca3af;
+            background: transparent;
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeframe.active {
+            color: #ffffff;
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .timeframe:hover {
+            color: #ffffff;
+            border-color: #10b981;
+        }
 
 .portfolio-display {
     text-align: center;
@@ -428,40 +855,95 @@
     background-size: 20px 20px;
 }
 
-.chart-line {
-    position: absolute;
-    bottom: 30px;
-    left: 20px;
-    right: 20px;
-    height: 3px;
-    background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
-    border-radius: 2px;
-    animation: chartPulse 4s ease-in-out infinite;
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-}
+        .chart-area {
+            position: relative;
+            height: 100px;
+            background: linear-gradient(145deg, #0f1720 0%, #1f2937 100%);
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
 
-.chart-line::after {
-    content: '';
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 16px;
-    height: 16px;
-    background: #10b981;
-    border-radius: 50%;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
-}
+        .chart-line {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+            border-radius: 2px;
+            animation: chartPulse 4s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
 
-@keyframes chartPulse {
-    0%, 100% { 
-        opacity: 0.8; 
-        transform: scaleY(1);
-    }
-    50% { 
-        opacity: 1; 
-        transform: scaleY(1.1);
-    }
-}
+        .chart-points {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+            animation: pointGlow 3s ease-in-out infinite;
+        }
+
+        .point-1 {
+            top: 60%;
+            left: 15%;
+            animation-delay: 0s;
+        }
+
+        .point-2 {
+            top: 45%;
+            left: 35%;
+            animation-delay: 0.6s;
+        }
+
+        .point-3 {
+            top: 35%;
+            left: 55%;
+            animation-delay: 1.2s;
+        }
+
+        .point-4 {
+            top: 25%;
+            left: 75%;
+            animation-delay: 1.8s;
+        }
+
+        .point-5 {
+            top: 20%;
+            left: 90%;
+            animation-delay: 2.4s;
+        }
+
+        @keyframes pointGlow {
+            0%, 100% { 
+                opacity: 0.6; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.3);
+            }
+        }
+
+        @keyframes chartPulse {
+            0%, 100% { 
+                opacity: 0.8; 
+                transform: scaleY(1);
+            }
+            50% { 
+                opacity: 1; 
+                transform: scaleY(1.1);
+            }
+        }
 
 /* Features Section */
 .features-section {
