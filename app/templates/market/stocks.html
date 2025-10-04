@@ -1,82 +1,1562 @@
 {% extends "base.html" %}
 
-{% block title %}Stocks - ZEBRAT TRADING{% endblock %}
+{% block title %}Market Stocks - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Market Overview</h2>
-    {% if current_user.is_authenticated %}
-        <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">Place Order</a>
-    {% endif %}
-</div>
-
-<!-- Stock List Table with Mini Charts -->
-<div class="table-responsive">
-    <table class="table table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Ticker</th>
-                <th>Company</th>
-                <th>Chart (24h)</th>
-                <th>Last Price</th>
-                <th>Change</th>
-                <th>Market Cap</th>
-                <th>Volume</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for stock in stocks %}
-            <tr class="stock-row clickable-row" data-stock-id="{{ stock.id }}" onclick="window.location.href='{{ url_for('market.stock_detail', stock_id=stock.id) }}'">
-                <td>
-                    <strong class="text-primary">{{ stock.ticker }}</strong>
-                </td>
-                <td>{{ stock.company }}</td>
-                <td>
-                    <!-- Mini Chart -->
-                    <div class="mini-chart-container" style="width: 120px; height: 60px;">
-                        <canvas id="mini-chart-{{ stock.id }}" style="width: 120px; height: 60px;"></canvas>
-                    </div>
-                </td>
-                <td>
-                    <span class="fw-bold" data-price-display="{{ stock.id }}">
-                        {% if stock.prices_live %}
-                            ${{ "%.4f"|format(stock.prices_live.last_price) }}
-                        {% else %}
-                            ${{ "%.4f"|format(stock.initial_price) }}
-                        {% endif %}
-                    </span>
-                </td>
-                <td>
-                    {% if stock.prices_live %}
-                        {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
-                        {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
-                        <span class="{% if change > 0 %}text-success{% elif change < 0 %}text-danger{% else %}text-muted{% endif %}">
-                            {{ "+$%.4f"|format(change) if change >= 0 else "$%.4f"|format(change) }}<br>
-                            <small>({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})</small>
-                        </span>
-                    {% else %}
-                        <span class="text-muted">--</span>
+<div class="market-page">
+    <div class="market-background">
+        <div class="market-pattern"></div>
+        <div class="market-grid"></div>
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
+        </div>
+    </div>
+    
+    <div class="market-container">
+        <!-- Header Section -->
+        <div class="market-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-chart-line"></i>
+                        Market Overview
+                    </h1>
+                    <p class="page-subtitle">Explore 150+ stocks with real-time data and interactive charts</p>
+                </div>
+                <div class="header-actions">
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('trading.place_order') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            <span>Place Order</span>
+                        </a>
                     {% endif %}
-                </td>
-                <td>${{ "{:,.0f}".format(stock.get_market_cap()|float) }}</td>
-                <td>{{ "{:,}".format(stock.float_shares) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    <button class="btn btn-secondary" onclick="toggleMarketView()">
+                        <i class="fas fa-th-large"></i>
+                        <span>Toggle View</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Stats -->
+        <div class="market-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-area"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ stocks|length if stocks else 0 }}</div>
+                    <div class="stat-label">Total Stocks</div>
+                    <div class="stat-change positive">Live Market</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="gaining-stocks">--</div>
+                    <div class="stat-label">Gaining Today</div>
+                    <div class="stat-change positive">+0.00%</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="losing-stocks">--</div>
+                    <div class="stat-label">Declining Today</div>
+                    <div class="stat-change negative">-0.00%</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="market-status">LIVE</div>
+                    <div class="stat-label">Market Status</div>
+                    <div class="stat-change positive">Real-time</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="market-controls">
+            <div class="search-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="stock-search" placeholder="Search stocks by ticker or company name...">
+                    <button class="search-clear" onclick="clearSearch()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-filter="all">All Stocks</button>
+                    <button class="filter-tab" data-filter="gaining">Gaining</button>
+                    <button class="filter-tab" data-filter="losing">Declining</button>
+                    <button class="filter-tab" data-filter="volume">High Volume</button>
+                </div>
+                
+                <div class="sort-controls">
+                    <select id="sort-select">
+                        <option value="ticker">Sort by Ticker</option>
+                        <option value="price">Sort by Price</option>
+                        <option value="change">Sort by Change</option>
+                        <option value="volume">Sort by Volume</option>
+                        <option value="market-cap">Sort by Market Cap</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stocks Grid -->
+        <div class="stocks-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-coins"></i>
+                    Live Stock Prices
+                </h2>
+                <div class="view-controls">
+                    <button class="view-btn active" data-view="grid" onclick="setView('grid')">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="view-btn" data-view="table" onclick="setView('table')">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+
+            {% if stocks %}
+                <!-- Grid View -->
+                <div class="stocks-grid" id="stocks-grid-view">
+                    {% for stock in stocks %}
+                    <div class="stock-card" data-stock-id="{{ stock.id }}" data-ticker="{{ stock.ticker }}" data-company="{{ stock.company }}" onclick="window.location.href='{{ url_for('market.stock_detail', stock_id=stock.id) }}'">
+                        <div class="stock-header">
+                            <div class="stock-info">
+                                <h3 class="stock-ticker">{{ stock.ticker }}</h3>
+                                <p class="stock-company">{{ stock.company }}</p>
+                            </div>
+                            <div class="stock-status">
+                                <span class="status-indicator live"></span>
+                            </div>
+                        </div>
+
+                        <div class="stock-chart">
+                            <canvas id="mini-chart-{{ stock.id }}" class="mini-chart"></canvas>
+                        </div>
+
+                        <div class="stock-price">
+                            <div class="price-display">
+                                <span class="currency">$</span>
+                                <span class="amount" data-price-display="{{ stock.id }}">
+                                    {% if stock.prices_live %}
+                                        {{ "%.4f"|format(stock.prices_live.last_price) }}
+                                    {% else %}
+                                        {{ "%.4f"|format(stock.initial_price) }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if stock.prices_live %}
+                                {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
+                                {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
+                                <div class="price-change {{ 'positive' if change > 0 else 'negative' if change < 0 else 'neutral' }}">
+                                    <span class="change-amount">
+                                        {{ "+$%.4f"|format(change) if change >= 0 else "$%.4f"|format(change) }}
+                                    </span>
+                                    <span class="change-percent">
+                                        ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
+                                    </span>
+                                </div>
+                            {% else %}
+                                <div class="price-change neutral">
+                                    <span class="change-amount">--</span>
+                                    <span class="change-percent">(--)</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="stock-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Market Cap</span>
+                                <span class="meta-value">${{ "{:,.0f}".format(stock.get_market_cap()|float) }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Volume</span>
+                                <span class="meta-value">{{ "{:,}".format(stock.float_shares) }}</span>
+                            </div>
+                        </div>
+
+                        <div class="stock-actions">
+                            <button class="action-btn watchlist" onclick="event.stopPropagation(); toggleWatchlist({{ stock.id }})">
+                                <i class="fas fa-eye"></i>
+                                <span>Watch</span>
+                            </button>
+                            <button class="action-btn trade" onclick="event.stopPropagation(); window.location.href='{{ url_for('trading.place_order') }}'">
+                                <i class="fas fa-exchange-alt"></i>
+                                <span>Trade</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Table View (Hidden by default) -->
+                <div class="stocks-table-container" id="stocks-table-view" style="display: none;">
+                    <div class="table-wrapper">
+                        <table class="stocks-table">
+                            <thead>
+                                <tr>
+                                    <th>Ticker</th>
+                                    <th>Company</th>
+                                    <th>Chart</th>
+                                    <th>Price</th>
+                                    <th>Change</th>
+                                    <th>Market Cap</th>
+                                    <th>Volume</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stock in stocks %}
+                                <tr class="stock-row" data-stock-id="{{ stock.id }}" data-ticker="{{ stock.ticker }}" data-company="{{ stock.company }}" onclick="window.location.href='{{ url_for('market.stock_detail', stock_id=stock.id) }}'">
+                                    <td>
+                                        <div class="ticker-cell">
+                                            <span class="ticker-symbol">{{ stock.ticker }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="company-cell">
+                                            <span class="company-name">{{ stock.company }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="chart-cell">
+                                            <canvas id="table-chart-{{ stock.id }}" class="table-chart"></canvas>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="price-cell">
+                                            <span class="price-amount" data-price-display="{{ stock.id }}">
+                                                ${{ "%.4f"|format(stock.prices_live.last_price) if stock.prices_live else "%.4f"|format(stock.initial_price) }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if stock.prices_live %}
+                                            {% set change = stock.prices_live.last_price - stock.prices_live.open_price %}
+                                            {% set change_pct = (change / stock.prices_live.open_price * 100) if stock.prices_live.open_price else 0 %}
+                                            <div class="change-cell {{ 'positive' if change > 0 else 'negative' if change < 0 else 'neutral' }}">
+                                                <span class="change-amount">
+                                                    {{ "+$%.4f"|format(change) if change >= 0 else "$%.4f"|format(change) }}
+                                                </span>
+                                                <span class="change-percent">
+                                                    ({{ "+%.2f%%"|format(change_pct) if change >= 0 else "%.2f%%"|format(change_pct) }})
+                                                </span>
+                                            </div>
+                                        {% else %}
+                                            <div class="change-cell neutral">
+                                                <span>--</span>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="market-cap">${{ "{:,.0f}".format(stock.get_market_cap()|float) }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="volume">{{ "{:,}".format(stock.float_shares) }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="table-actions" onclick="event.stopPropagation()">
+                                            <button class="table-btn watchlist" onclick="toggleWatchlist({{ stock.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="table-btn trade" onclick="window.location.href='{{ url_for('trading.place_order') }}'">
+                                                <i class="fas fa-exchange-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="empty-title">No Stocks Available</h3>
+                    <p class="empty-description">
+                        The market is currently closed or no stocks are available for trading.
+                    </p>
+                    <div class="empty-actions">
+                        <button class="btn btn-primary" onclick="location.reload()">
+                            <i class="fas fa-refresh"></i>
+                            <span>Refresh Market</span>
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-{% if not stocks %}
-<div class="text-center py-5">
-    <h4 class="text-muted">No stocks available</h4>
-    <p>Check back later or contact an administrator.</p>
-</div>
-{% endif %}
+<script>
+// Global variables
+let currentView = 'grid';
+let currentFilter = 'all';
+let currentSort = 'ticker';
+let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMarket();
+    setupEventListeners();
+    startRealTimeUpdates();
+});
+
+function initializeMarket() {
+    // Initialize mini charts
+    {% for stock in stocks %}
+    loadMiniChart({{ stock.id }}, 'grid');
+    loadMiniChart({{ stock.id }}, 'table');
+    {% endfor %}
+    
+    // Update market stats
+    updateMarketStats();
+    
+    // Update watchlist buttons
+    updateWatchlistButtons();
+}
+
+function setupEventListeners() {
+    // Search functionality
+    const searchInput = document.getElementById('stock-search');
+    searchInput.addEventListener('input', filterStocks);
+    
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            filterStocks();
+        });
+    });
+    
+    // Sort functionality
+    document.getElementById('sort-select').addEventListener('change', function() {
+        currentSort = this.value;
+        sortStocks();
+    });
+}
+
+function filterStocks() {
+    const searchTerm = document.getElementById('stock-search').value.toLowerCase();
+    const stockCards = document.querySelectorAll('.stock-card');
+    const stockRows = document.querySelectorAll('.stock-row');
+    
+    [stockCards, stockRows].forEach(collection => {
+        collection.forEach(element => {
+            const ticker = element.dataset.ticker.toLowerCase();
+            const company = element.dataset.company.toLowerCase();
+            const matchesSearch = ticker.includes(searchTerm) || company.includes(searchTerm);
+            
+            let matchesFilter = true;
+            if (currentFilter === 'gaining') {
+                const changeElement = element.querySelector('.change-amount');
+                matchesFilter = changeElement && changeElement.textContent.startsWith('+');
+            } else if (currentFilter === 'losing') {
+                const changeElement = element.querySelector('.change-amount');
+                matchesFilter = changeElement && changeElement.textContent.startsWith('-');
+            }
+            
+            element.style.display = (matchesSearch && matchesFilter) ? 'block' : 'none';
+        });
+    });
+}
+
+function sortStocks() {
+    // Implementation for sorting stocks
+    console.log('Sorting by:', currentSort);
+}
+
+function setView(view) {
+    currentView = view;
+    
+    // Update view buttons
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    // Show/hide views
+    document.getElementById('stocks-grid-view').style.display = view === 'grid' ? 'grid' : 'none';
+    document.getElementById('stocks-table-view').style.display = view === 'table' ? 'block' : 'none';
+}
+
+function toggleWatchlist(stockId) {
+    const index = watchlist.indexOf(stockId);
+    if (index > -1) {
+        watchlist.splice(index, 1);
+    } else {
+        watchlist.push(stockId);
+    }
+    
+    localStorage.setItem('watchlist', JSON.stringify(watchlist));
+    updateWatchlistButtons();
+}
+
+function updateWatchlistButtons() {
+    document.querySelectorAll('.watchlist').forEach(btn => {
+        const stockId = parseInt(btn.closest('[data-stock-id]').dataset.stockId);
+        const isWatched = watchlist.includes(stockId);
+        
+        btn.classList.toggle('active', isWatched);
+        btn.querySelector('span').textContent = isWatched ? 'Watched' : 'Watch';
+    });
+}
+
+function updateMarketStats() {
+    // Update gaining/losing counts
+    const positiveChanges = document.querySelectorAll('.change-cell.positive, .price-change.positive').length;
+    const negativeChanges = document.querySelectorAll('.change-cell.negative, .price-change.negative').length;
+    
+    document.getElementById('gaining-stocks').textContent = positiveChanges;
+    document.getElementById('losing-stocks').textContent = negativeChanges;
+}
+
+function startRealTimeUpdates() {
+    setInterval(function() {
+        fetch('/market/prices')
+            .then(response => response.json())
+            .then(data => {
+                document.querySelectorAll('[data-price-display]').forEach(element => {
+                    const stockId = element.dataset.priceDisplay;
+                    if (data[stockId]) {
+                        element.textContent = parseFloat(data[stockId].last_price).toFixed(4);
+                    }
+                });
+                updateMarketStats();
+            })
+            .catch(error => console.log('Price update failed:', error));
+    }, 5000);
+}
+
+function clearSearch() {
+    document.getElementById('stock-search').value = '';
+    filterStocks();
+}
+
+function toggleMarketView() {
+    setView(currentView === 'grid' ? 'table' : 'grid');
+}
+
+// Chart functionality
+const miniCharts = {};
+
+function loadMiniChart(stockId, view) {
+    const canvas = document.getElementById(`${view === 'grid' ? 'mini-chart' : 'table-chart'}-${stockId}`);
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    fetch(`/market/api/stock/${stockId}/candles?interval=1h&limit=24`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error || !data.data || data.data.length === 0) {
+                showMiniChartPlaceholder(ctx, stockId);
+                return;
+            }
+            renderMiniChart(ctx, data, stockId, view);
+        })
+        .catch(error => {
+            console.log(`Mini chart failed for stock ${stockId}:`, error);
+            showMiniChartPlaceholder(ctx, stockId);
+        });
+}
+
+function renderMiniChart(ctx, data, stockId, view) {
+    const prices = data.data.map(candle => candle.close);
+    const timestamps = data.data.map(candle => new Date(candle.x));
+
+    const firstPrice = prices[0];
+    const lastPrice = prices[prices.length - 1];
+    const trendColor = lastPrice >= firstPrice ? '#10b981' : '#ef4444';
+
+    const chartId = `${stockId}-${view}`;
+    miniCharts[chartId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: timestamps,
+            datasets: [{
+                data: prices,
+                borderColor: trendColor,
+                backgroundColor: `${trendColor}15`,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            layout: {
+                padding: 4
+            },
+            scales: {
+                x: { display: false },
+                y: { display: false }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: '#10b981',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    callbacks: {
+                        title: function(context) {
+                            return new Date(context[0].label).toLocaleString();
+                        },
+                        label: function(context) {
+                            return `$${context.parsed.y.toFixed(4)}`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                duration: 300
+            }
+        }
+    });
+}
+
+function showMiniChartPlaceholder(ctx, stockId) {
+    ctx.fillStyle = 'rgba(55, 65, 81, 0.5)';
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = '10px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('No data', ctx.canvas.width / 2, ctx.canvas.height / 2);
+}
+</script>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<style>
+/* Enhanced Market Stocks Page Styles */
+.market-page {
+    min-height: 100vh;
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+    overflow-x: hidden;
+}
+
+.market-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.market-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: float 25s ease-in-out infinite;
+}
+
+.market-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-element {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border-radius: 50%;
+    animation: floatElement 8s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: -5%;
+    animation-delay: 3s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: 6s;
+}
+
+@keyframes floatElement {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg); 
+        opacity: 0.6;
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Market Container */
+.market-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Header Section */
+.market-header {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.page-title i {
+    color: #10b981;
+    font-size: 1.75rem;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: #9ca3af;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #374151;
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Market Stats */
+.market-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.stat-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
+}
+
+.stat-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.stat-icon i {
+    font-size: 1.25rem;
+    color: #000000;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+}
+
+.stat-change {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.stat-change.positive {
+    color: #10b981;
+}
+
+.stat-change.negative {
+    color: #ef4444;
+}
+
+/* Market Controls */
+.market-controls {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.search-section {
+    margin-bottom: 1.5rem;
+}
+
+.search-box {
+    position: relative;
+    max-width: 500px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #10b981;
+    font-size: 1rem;
+    z-index: 2;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.search-box input::placeholder {
+    color: #6b7280;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: #10b981;
+    background: rgba(0, 0, 0, 0.7);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.search-clear {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: all 0.3s ease;
+}
+
+.search-clear:hover {
+    color: #ffffff;
+    background: rgba(55, 65, 81, 0.5);
+}
+
+.filter-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}
+
+.filter-tab {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-tab.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.filter-tab:hover:not(.active) {
+    color: #ffffff;
+}
+
+.sort-controls select {
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 0.5rem;
+    color: #ffffff;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sort-controls select:focus {
+    outline: none;
+    border-color: #10b981;
+}
+
+.sort-controls select option {
+    background: #1f2937;
+    color: #ffffff;
+}
+
+/* Stocks Section */
+.stocks-section {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.section-title i {
+    color: #10b981;
+}
+
+.view-controls {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}
+
+.view-btn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.view-btn.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.view-btn:hover:not(.active) {
+    color: #ffffff;
+}
+
+/* Stocks Grid */
+.stocks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.stock-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.stock-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stock-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.stock-card:hover::before {
+    opacity: 1;
+}
+
+.stock-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.stock-info {
+    flex: 1;
+}
+
+.stock-ticker {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 0.25rem 0;
+}
+
+.stock-company {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.stock-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.status-indicator.live {
+    background: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.stock-chart {
+    height: 80px;
+    margin-bottom: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 0.5rem;
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.mini-chart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.stock-price {
+    margin-bottom: 1rem;
+}
+
+.price-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.currency {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #10b981;
+}
+
+.amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.price-change {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.change-amount {
+    font-weight: 600;
+}
+
+.change-percent {
+    font-weight: 500;
+}
+
+.price-change.positive {
+    color: #10b981;
+}
+
+.price-change.negative {
+    color: #ef4444;
+}
+
+.price-change.neutral {
+    color: #9ca3af;
+}
+
+.stock-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.meta-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.meta-value {
+    font-size: 0.875rem;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.stock-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn.watchlist {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+.action-btn.watchlist:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: translateY(-1px);
+}
+
+.action-btn.watchlist.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.action-btn.trade {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    color: #3b82f6;
+}
+
+.action-btn.trade:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Table View */
+.stocks-table-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.stocks-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.stocks-table th {
+    background: rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+    font-size: 0.875rem;
+}
+
+.stocks-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(55, 65, 81, 0.2);
+    vertical-align: middle;
+}
+
+.stock-row {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stock-row:hover {
+    background: rgba(16, 185, 129, 0.05);
+    transform: translateY(-1px);
+}
+
+.ticker-symbol {
+    font-weight: 700;
+    color: #10b981;
+    font-size: 1rem;
+}
+
+.company-name {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.chart-cell {
+    width: 100px;
+    height: 40px;
+}
+
+.table-chart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.price-amount {
+    font-weight: 700;
+    color: #ffffff;
+    font-size: 1rem;
+}
+
+.change-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.change-cell.positive {
+    color: #10b981;
+}
+
+.change-cell.negative {
+    color: #ef4444;
+}
+
+.change-cell.neutral {
+    color: #9ca3af;
+}
+
+.market-cap, .volume {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.table-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table-btn.watchlist {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.table-btn.watchlist:hover {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+.table-btn.watchlist.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.table-btn.trade {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.table-btn.trade:hover {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.empty-icon i {
+    font-size: 2rem;
+    color: #10b981;
+}
+
+.empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.empty-description {
+    font-size: 1rem;
+    color: #9ca3af;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.empty-actions {
+    display: flex;
+    justify-content: center;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .market-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stocks-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .market-page {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .market-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .filter-tabs {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .stocks-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .view-controls {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .stock-meta {
+        grid-template-columns: 1fr;
+    }
+    
+    .stock-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        justify-content: center;
+    }
+}
+</style>
 
 <script>
 const miniCharts = {};

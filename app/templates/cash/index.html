@@ -3,77 +3,1238 @@
 {% block title %}Cash Management - ZEBRAT TRADING{% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <h3>Cash Balance</h3>
-                        <h2 class="text-success">${{ "{:,.2f}".format(balance) }}</h2>
+<div class="cash-page">
+    <div class="cash-background">
+        <div class="cash-pattern"></div>
+        <div class="cash-grid"></div>
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-element element-1"></div>
+            <div class="floating-element element-2"></div>
+            <div class="floating-element element-3"></div>
+        </div>
+    </div>
+    
+    <div class="cash-container">
+        <!-- Header Section -->
+        <div class="cash-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="page-title">
+                        <i class="fas fa-wallet"></i>
+                        Cash Management
+                    </h1>
+                    <p class="page-subtitle">Manage your virtual trading funds with confidence</p>
+                </div>
+                <div class="header-actions">
+                    <a href="{{ url_for('cash.deposit') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        <span>Deposit</span>
+                    </a>
+                    <a href="{{ url_for('cash.withdraw') }}" class="btn btn-secondary">
+                        <i class="fas fa-minus"></i>
+                        <span>Withdraw</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Overview Cards -->
+        <div class="balance-cards">
+            <!-- Main Balance Card -->
+            <div class="balance-card main-balance">
+                <div class="card-header">
+                    <div class="header-icon">
+                        <i class="fas fa-dollar-sign"></i>
                     </div>
-                    <div class="col-md-6 text-end">
-                        <a href="{{ url_for('cash.deposit') }}" class="btn btn-success me-2">Deposit</a>
-                        <a href="{{ url_for('cash.withdraw') }}" class="btn btn-outline-danger">Withdraw</a>
+                    <div class="header-text">
+                        <h3>Available Balance</h3>
+                        <p>Your current trading capital</p>
+                    </div>
+                    <div class="header-status">
+                        <span class="status-indicator active"></span>
+                        <span>Active</span>
                     </div>
                 </div>
+                <div class="balance-amount">
+                    <div class="amount-display">
+                        <span class="currency">$</span>
+                        <span class="amount">{{ "{:,.2f}".format(balance) }}</span>
+                    </div>
+                    <div class="balance-change">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Ready for trading</span>
+                    </div>
+                </div>
+                <div class="balance-actions">
+                    <button class="action-btn" onclick="copyToClipboard('{{ "{:,.2f}".format(balance) }}')">
+                        <i class="fas fa-copy"></i>
+                        <span>Copy Amount</span>
+                    </button>
+                    <button class="action-btn" onclick="showBalanceHistory()">
+                        <i class="fas fa-chart-line"></i>
+                        <span>View History</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">$0</div>
+                        <div class="stat-label">Today's Deposits</div>
+                        <div class="stat-change positive">+0.00%</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">$0</div>
+                        <div class="stat-label">Today's Withdrawals</div>
+                        <div class="stat-change neutral">0.00%</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ transactions|length if transactions else 0 }}</div>
+                        <div class="stat-label">Total Transactions</div>
+                        <div class="stat-change positive">All Time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="transaction-section">
+            <div class="section-header">
+                <div class="header-content">
+                    <h2 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Transaction History
+                    </h2>
+                    <div class="header-controls">
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" data-filter="all">All</button>
+                            <button class="filter-tab" data-filter="deposit">Deposits</button>
+                            <button class="filter-tab" data-filter="withdrawal">Withdrawals</button>
+                        </div>
+                        <button class="export-btn">
+                            <i class="fas fa-download"></i>
+                            <span>Export</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="transactions-container">
+                {% if transactions %}
+                    <div class="transactions-list">
+                        {% for transaction in transactions %}
+                        <div class="transaction-item" data-type="{{ 'deposit' if transaction.amount > 0 else 'withdrawal' }}">
+                            <div class="transaction-icon">
+                                {% if transaction.amount > 0 %}
+                                    <i class="fas fa-plus-circle"></i>
+                                {% else %}
+                                    <i class="fas fa-minus-circle"></i>
+                                {% endif %}
+                            </div>
+                            <div class="transaction-details">
+                                <div class="transaction-info">
+                                    <h4 class="transaction-type">
+                                        {{ transaction.transaction_type.value.replace('_', ' ').title() }}
+                                    </h4>
+                                    <p class="transaction-description">
+                                        {{ transaction.description or 'Cash transaction' }}
+                                    </p>
+                                </div>
+                                <div class="transaction-meta">
+                                    <div class="transaction-date">
+                                        <i class="fas fa-calendar"></i>
+                                        <span>{{ transaction.created_at.strftime('%b %d, %Y') }}</span>
+                                    </div>
+                                    <div class="transaction-time">
+                                        <i class="fas fa-clock"></i>
+                                        <span>{{ transaction.created_at.strftime('%I:%M %p') }}</span>
+                                    </div>
+                                    {% if transaction.reference_id %}
+                                    <div class="transaction-ref">
+                                        <i class="fas fa-hashtag"></i>
+                                        <span>{{ transaction.reference_id }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="transaction-amount">
+                                <div class="amount-value {{ 'positive' if transaction.amount > 0 else 'negative' }}">
+                                    {% if transaction.amount > 0 %}
+                                        +${{ "{:,.2f}".format(transaction.amount) }}
+                                    {% else %}
+                                        -${{ "{:,.2f}".format(-transaction.amount) }}
+                                    {% endif %}
+                                </div>
+                                <div class="amount-status {{ 'success' if transaction.amount > 0 else 'danger' }}">
+                                    {{ 'Credited' if transaction.amount > 0 else 'Debited' }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <h3 class="empty-title">No Transactions Yet</h3>
+                        <p class="empty-description">
+                            Your cash transactions will appear here once you make deposits or withdrawals.
+                        </p>
+                        <div class="empty-actions">
+                            <a href="{{ url_for('cash.deposit') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                <span>Make First Deposit</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h3 class="actions-title">
+                <i class="fas fa-bolt"></i>
+                Quick Actions
+            </h3>
+            <div class="actions-grid">
+                <a href="{{ url_for('cash.deposit') }}" class="action-card deposit">
+                    <div class="action-icon">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>Add Funds</h4>
+                        <p>Deposit money to your account</p>
+                    </div>
+                    <div class="action-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('cash.withdraw') }}" class="action-card withdraw">
+                    <div class="action-icon">
+                        <i class="fas fa-minus"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>Withdraw Funds</h4>
+                        <p>Withdraw money from your account</p>
+                    </div>
+                    <div class="action-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('trading.place_order') }}" class="action-card trade">
+                    <div class="action-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>Start Trading</h4>
+                        <p>Use your funds to buy stocks</p>
+                    </div>
+                    <div class="action-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
+
+                <a href="{{ url_for('portfolio.index') }}" class="action-card portfolio">
+                    <div class="action-icon">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div class="action-content">
+                        <h4>View Portfolio</h4>
+                        <p>Check your investment performance</p>
+                    </div>
+                    <div class="action-arrow">
+                        <i class="fas fa-arrow-right"></i>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Recent Transactions</h5>
-    </div>
-    <div class="card-body">
-        {% if transactions %}
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Description</th>
-                        <th>Reference</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for transaction in transactions %}
-                    <tr>
-                        <td>{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                        <td>
-                            <span class="badge bg-{{ 'success' if transaction.amount > 0 else 'danger' }}">
-                                {{ transaction.transaction_type.value.replace('_', ' ').title() }}
-                            </span>
-                        </td>
-                        <td class="{{ 'text-success' if transaction.amount > 0 else 'text-danger' }}">
-                            {% if transaction.amount > 0 %}
-                                +${{ "{:,.2f}".format(transaction.amount) }}
-                            {% else %}
-                                ${{ "{:,.2f}".format(-transaction.amount) }}
-                            {% endif %}
-                        </td>
-                        <td>{{ transaction.description or '—' }}</td>
-                        <td>
-                            {% if transaction.reference_id %}
-                                <small class="text-muted">{{ transaction.reference_id }}</small>
-                            {% else %}
-                                —
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-4">
-            <h6 class="text-muted">No transactions yet</h6>
-            <p>Your cash transactions will appear here.</p>
-        </div>
-        {% endif %}
-    </div>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter tabs functionality
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    const transactionItems = document.querySelectorAll('.transaction-item');
+    
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs
+            filterTabs.forEach(t => t.classList.remove('active'));
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            const filter = this.dataset.filter;
+            
+            // Filter transactions
+            transactionItems.forEach(item => {
+                if (filter === 'all' || item.dataset.type === filter) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Copy to clipboard functionality
+    window.copyToClipboard = function(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Show success message
+            const button = event.target.closest('.action-btn');
+            const originalText = button.querySelector('span').textContent;
+            button.querySelector('span').textContent = 'Copied!';
+            button.classList.add('copied');
+            
+            setTimeout(() => {
+                button.querySelector('span').textContent = originalText;
+                button.classList.remove('copied');
+            }, 2000);
+        });
+    };
+    
+    // Show balance history (placeholder)
+    window.showBalanceHistory = function() {
+        alert('Balance history feature coming soon!');
+    };
+});
+</script>
+
+<style>
+/* Enhanced Cash Dashboard Styles */
+.cash-page {
+    min-height: 100vh;
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+    overflow-x: hidden;
+}
+
+.cash-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, transparent 50%, rgba(16, 185, 129, 0.02) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.cash-pattern {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: float 25s ease-in-out infinite;
+}
+
+.cash-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.floating-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.floating-element {
+    position: absolute;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border-radius: 50%;
+    animation: floatElement 8s ease-in-out infinite;
+}
+
+.element-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: -10%;
+    animation-delay: 0s;
+}
+
+.element-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: -5%;
+    animation-delay: 3s;
+}
+
+.element-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 10%;
+    animation-delay: 6s;
+}
+
+@keyframes floatElement {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.3;
+    }
+    50% { 
+        transform: translateY(-30px) rotate(180deg); 
+        opacity: 0.6;
+    }
+}
+
+@keyframes float {
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        opacity: 0.8;
+    }
+    33% { 
+        transform: translateY(-15px) rotate(1deg); 
+        opacity: 1;
+    }
+    66% { 
+        transform: translateY(-5px) rotate(-1deg); 
+        opacity: 0.9;
+    }
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Cash Container */
+.cash-container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Header Section */
+.cash-header {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+}
+
+.page-title i {
+    color: #10b981;
+    font-size: 1.75rem;
+}
+
+.page-subtitle {
+    font-size: 1.125rem;
+    color: #9ca3af;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #000000;
+    box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px 0 rgba(16, 185, 129, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #ffffff;
+    border: 2px solid #374151;
+    backdrop-filter: blur(10px);
+}
+
+.btn-secondary:hover {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+/* Balance Cards */
+.balance-cards {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.main-balance {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.main-balance::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.header-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.header-icon i {
+    font-size: 1.25rem;
+    color: #000000;
+}
+
+.header-text h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 0.25rem 0;
+}
+
+.header-text p {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #10b981;
+    font-weight: 500;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.balance-amount {
+    margin-bottom: 1.5rem;
+}
+
+.amount-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.currency {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #10b981;
+}
+
+.amount {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+
+.balance-change {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+}
+
+.balance-change i {
+    color: #10b981;
+}
+
+.balance-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.5rem;
+    color: #10b981;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    transform: translateY(-1px);
+}
+
+.action-btn.copied {
+    background: #10b981;
+    color: #000000;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stat-card {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.6) 0%, rgba(17, 24, 39, 0.7) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.8s ease-out calc(0.3s + var(--delay, 0s)) both;
+}
+
+.stat-card:nth-child(1) { --delay: 0.1s; }
+.stat-card:nth-child(2) { --delay: 0.2s; }
+.stat-card:nth-child(3) { --delay: 0.3s; }
+
+.stat-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon i {
+    font-size: 1rem;
+    color: #000000;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+}
+
+.stat-change {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.stat-change.positive {
+    color: #10b981;
+}
+
+.stat-change.neutral {
+    color: #9ca3af;
+}
+
+/* Transaction Section */
+.transaction-section {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0;
+}
+
+.section-title i {
+    color: #10b981;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}
+
+.filter-tab {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-tab.active {
+    background: #10b981;
+    color: #000000;
+}
+
+.filter-tab:hover:not(.active) {
+    color: #ffffff;
+}
+
+.export-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 0.5rem;
+    color: #10b981;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+/* Transactions List */
+.transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.transaction-item:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.transaction-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.transaction-item[data-type="deposit"] .transaction-icon {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(52, 211, 153, 0.1) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.transaction-item[data-type="withdrawal"] .transaction-icon {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(248, 113, 113, 0.1) 100%);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.transaction-item[data-type="deposit"] .transaction-icon i {
+    color: #10b981;
+}
+
+.transaction-item[data-type="withdrawal"] .transaction-icon i {
+    color: #ef4444;
+}
+
+.transaction-details {
+    flex: 1;
+}
+
+.transaction-info {
+    margin-bottom: 0.5rem;
+}
+
+.transaction-type {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 0.25rem 0;
+}
+
+.transaction-description {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.transaction-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.transaction-meta > div {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.transaction-meta i {
+    font-size: 0.75rem;
+}
+
+.transaction-amount {
+    text-align: right;
+}
+
+.amount-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.amount-value.positive {
+    color: #10b981;
+}
+
+.amount-value.negative {
+    color: #ef4444;
+}
+
+.amount-status {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+}
+
+.amount-status.success {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.amount-status.danger {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(52, 211, 153, 0.05) 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+
+.empty-icon i {
+    font-size: 2rem;
+    color: #10b981;
+}
+
+.empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.empty-description {
+    font-size: 1rem;
+    color: #9ca3af;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.empty-actions {
+    display: flex;
+    justify-content: center;
+}
+
+/* Quick Actions */
+.quick-actions {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
+    border: 1px solid rgba(55, 65, 81, 0.5);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: fadeInUp 0.8s ease-out 0.6s both;
+}
+
+.actions-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+}
+
+.actions-title i {
+    color: #10b981;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.action-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(55, 65, 81, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.action-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.action-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.action-card.deposit .action-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.action-card.withdraw .action-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.action-card.trade .action-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.action-card.portfolio .action-icon {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.action-icon i {
+    font-size: 1.25rem;
+    color: #ffffff;
+}
+
+.action-content {
+    flex: 1;
+}
+
+.action-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 0 0.25rem 0;
+}
+
+.action-content p {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.action-arrow {
+    color: #6b7280;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.action-card:hover .action-arrow {
+    color: #10b981;
+    transform: translateX(4px);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .balance-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .cash-page {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+    }
+    
+    .amount {
+        font-size: 2.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .header-controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .filter-tabs {
+        width: 100%;
+    }
+    
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .transaction-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .transaction-amount {
+        text-align: left;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    .amount {
+        font-size: 2rem;
+    }
+    
+    .balance-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .action-btn {
+        justify-content: center;
+    }
+}
+</style>
 {% endblock %}
