@@ -139,64 +139,64 @@
         </thead>
         <tbody>
             {% for order in orders %}
-                                <tr class="order-row" data-order-id="{{ order.id }}" data-status="{{ order.status.value }}">
-                                    <td>
-                                        <div class="order-id">
-                                            <span class="id-number">#{{ order.id }}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="stock-info">
-                                            <div class="stock-ticker">{{ order.stock.ticker }}</div>
-                                            <div class="stock-company">{{ order.stock.company }}</div>
-                                        </div>
+            <tr class="order-row" data-order-id="{{ order.id }}" data-status="{{ order.status.value }}">
+                <td class="col-order-id">
+                    <div class="order-id">
+                        <span class="id-number">#{{ order.id }}</span>
+                    </div>
                 </td>
-                <td>
-                                        <div class="order-side {{ order.side.value }}">
-                                            <span class="side-badge {{ order.side.value }}">
-                                                <i class="fas fa-arrow-{{ 'up' if order.side.value == 'buy' else 'down' }}"></i>
-                        {{ order.side.value.upper() }}
-                    </span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="order-quantity">
-                                            {{ "{:,}".format(order.quantity) }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="order-price">
-                                            ${{ "%.4f"|format(order.price) if order.price else "Market" }}
-                                        </div>
+                <td class="col-stock">
+                    <div class="stock-info">
+                        <div class="stock-ticker">{{ order.stock.ticker }}</div>
+                        <div class="stock-company">{{ order.stock.company }}</div>
+                    </div>
                 </td>
-                                    <td>
-                                        <div class="order-status">
-                                            <span class="status-badge {{ order.status.value }}">
-                                                <span class="status-indicator"></span>
-                                                {{ order.status.value.replace('_', ' ').title() }}
-                    </span>
-                                        </div>
+                <td class="col-side">
+                    <div class="order-side {{ order.side.value }}">
+                        <span class="side-badge {{ order.side.value }}">
+                            <i class="fas fa-arrow-{{ 'up' if order.side.value == 'buy' else 'down' }}"></i>
+                            {{ order.side.value.upper() }}
+                        </span>
+                    </div>
                 </td>
-                <td>
-                                        <div class="order-date">
-                                            <div class="date">{{ order.created_at.strftime('%Y-%m-%d') }}</div>
-                                            <div class="time">{{ order.created_at.strftime('%H:%M:%S') }}</div>
-                                        </div>
+                <td class="col-quantity">
+                    <div class="order-quantity">
+                        {{ "{:,}".format(order.quantity) }}
+                    </div>
                 </td>
-                <td>
-                                        <div class="order-actions">
-                    {% if order.status.value == 'queued' %}
-                                                <button class="action-btn cancel" onclick="cancelOrder({{ order.id }})">
-                                                    <i class="fas fa-times"></i>
-                                                    <span>Cancel</span>
-                                                </button>
-                    {% else %}
-                                                <button class="action-btn view" onclick="viewOrderDetails({{ order.id }})">
-                                                    <i class="fas fa-eye"></i>
-                                                    <span>View</span>
-                                                </button>
-                    {% endif %}
-                                        </div>
+                <td class="col-price">
+                    <div class="order-price">
+                        ${{ "%.4f"|format(order.price) if order.price else "Market" }}
+                    </div>
+                </td>
+                <td class="col-status">
+                    <div class="order-status">
+                        <span class="status-badge {{ order.status.value }}">
+                            <span class="status-indicator"></span>
+                            {{ order.status.value.replace('_', ' ').title() }}
+                        </span>
+                    </div>
+                </td>
+                <td class="col-created">
+                    <div class="order-date">
+                        <div class="date">{{ order.created_at.strftime('%Y-%m-%d') }}</div>
+                        <div class="time">{{ order.created_at.strftime('%H:%M:%S') }}</div>
+                    </div>
+                </td>
+                <td class="col-actions">
+                    <div class="order-actions">
+                        {% if order.status.value == 'queued' %}
+                        <button class="action-btn cancel" onclick="cancelOrder({{ order.id }})">
+                            <i class="fas fa-times"></i>
+                            <span>Cancel</span>
+                        </button>
+                        {% else %}
+                        <button class="action-btn view" onclick="viewOrderDetails({{ order.id }})">
+                            <i class="fas fa-eye"></i>
+                            <span>View</span>
+                        </button>
+                        {% endif %}
+                    </div>
                 </td>
             </tr>
             {% endfor %}

@@ -104,6 +104,7 @@ body {
   gap: var(--spacing-sm);
   text-decoration: none;
   color: var(--color-white);
+  flex-shrink: 0;
 }
 
 .brand-logo {
@@ -115,12 +116,19 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+  position: relative;
 }
 
 .brand-icon {
   font-size: 20px;
   font-weight: 800;
   color: var(--color-white);
+  line-height: 1;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand-text {
@@ -748,6 +756,9 @@ body {
   /* Compact mobile navbar */
   .navbar {
     padding: var(--spacing-sm) 0;
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(55, 65, 81, 0.6);
   }
 
   .nav-container {
@@ -757,11 +768,40 @@ body {
     gap: var(--spacing-md);
     padding: 0 var(--spacing-md);
     min-height: 56px;
+    position: relative;
+  }
+
+  /* Add subtle accent line to mobile header */
+  .nav-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-emerald-500), transparent);
+    opacity: 0.6;
   }
 
   /* Hide brand text on mobile */
   .brand-text {
     display: none;
+  }
+
+  /* Enhanced brand logo for mobile */
+  .brand-logo {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+  }
+
+  .brand-logo::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(45deg, var(--color-emerald-400), var(--color-emerald-600));
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0.3;
   }
 
   /* Hide market status on mobile */
