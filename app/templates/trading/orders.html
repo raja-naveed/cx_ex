@@ -127,14 +127,14 @@
                         <table class="orders-table">
                             <thead>
             <tr>
-                <th>Order ID</th>
-                <th>Stock</th>
-                <th>Side</th>
-                <th>Quantity</th>
-                                    <th>Price</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
+                <th class="col-order-id">Order ID</th>
+                <th class="col-stock">Stock</th>
+                <th class="col-side">Side</th>
+                <th class="col-quantity">Quantity</th>
+                <th class="col-price">Price</th>
+                <th class="col-status">Status</th>
+                <th class="col-created">Created</th>
+                <th class="col-actions">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -916,7 +916,9 @@ document.getElementById('cancel-modal').addEventListener('click', function(e) {
 
 .orders-table {
     width: 100%;
+    min-width: 800px;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .orders-table th {
@@ -933,6 +935,52 @@ document.getElementById('cancel-modal').addEventListener('click', function(e) {
     padding: 1rem;
     border-bottom: 1px solid rgba(55, 65, 81, 0.2);
     vertical-align: middle;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+/* Column Width Definitions */
+.col-order-id {
+    width: 100px;
+    min-width: 100px;
+}
+
+.col-stock {
+    width: 150px;
+    min-width: 150px;
+}
+
+.col-side {
+    width: 80px;
+    min-width: 80px;
+}
+
+.col-quantity {
+    width: 100px;
+    min-width: 100px;
+    text-align: right;
+}
+
+.col-price {
+    width: 120px;
+    min-width: 120px;
+    text-align: right;
+}
+
+.col-status {
+    width: 120px;
+    min-width: 120px;
+}
+
+.col-created {
+    width: 140px;
+    min-width: 140px;
+}
+
+.col-actions {
+    width: 100px;
+    min-width: 100px;
+    text-align: center;
 }
 
 .order-row {
@@ -1365,6 +1413,53 @@ document.getElementById('cancel-modal').addEventListener('click', function(e) {
     }
 }
 
+/* Tablet adjustments */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .orders-table {
+        min-width: 750px;
+    }
+    
+    .col-order-id {
+        width: 90px;
+        min-width: 90px;
+    }
+    
+    .col-stock {
+        width: 130px;
+        min-width: 130px;
+    }
+    
+    .col-side {
+        width: 75px;
+        min-width: 75px;
+    }
+    
+    .col-quantity {
+        width: 95px;
+        min-width: 95px;
+    }
+    
+    .col-price {
+        width: 110px;
+        min-width: 110px;
+    }
+    
+    .col-status {
+        width: 110px;
+        min-width: 110px;
+    }
+    
+    .col-created {
+        width: 130px;
+        min-width: 130px;
+    }
+    
+    .col-actions {
+        width: 95px;
+        min-width: 95px;
+    }
+}
+
 @media (max-width: 768px) {
     .orders-page {
         padding: 1rem;
@@ -1428,11 +1523,53 @@ document.getElementById('cancel-modal').addEventListener('click', function(e) {
     
     .orders-table {
         font-size: 0.875rem;
+        min-width: 800px;
     }
     
     .orders-table th,
     .orders-table td {
         padding: 0.75rem 0.5rem;
+    }
+    
+    /* Mobile column adjustments */
+    .col-order-id {
+        width: 80px;
+        min-width: 80px;
+    }
+    
+    .col-stock {
+        width: 120px;
+        min-width: 120px;
+    }
+    
+    .col-side {
+        width: 70px;
+        min-width: 70px;
+    }
+    
+    .col-quantity {
+        width: 90px;
+        min-width: 90px;
+    }
+    
+    .col-price {
+        width: 100px;
+        min-width: 100px;
+    }
+    
+    .col-status {
+        width: 100px;
+        min-width: 100px;
+    }
+    
+    .col-created {
+        width: 120px;
+        min-width: 120px;
+    }
+    
+    .col-actions {
+        width: 90px;
+        min-width: 90px;
     }
 }
 </style>

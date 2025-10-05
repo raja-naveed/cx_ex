@@ -19,6 +19,13 @@
                 <span class="brand-text">ZEBRAT TRADING</span>
             </div>
             
+            <!-- Mobile Hamburger Menu -->
+            <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            
             {% if market_state %}
             <div class="market-status">
                 <span class="status-label">Market:</span>
@@ -31,7 +38,7 @@
             </div>
             {% endif %}
             
-            <div class="nav-links">
+            <div class="nav-links" id="nav-links">
                 {% if current_user.is_authenticated %}
                     <a href="{{ url_for('market.stocks') }}" class="nav-link">
                         <i class="fas fa-chart-line"></i>
@@ -105,6 +112,39 @@
     </main>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const navLinks = document.getElementById('nav-links');
+            
+            if (mobileMenuToggle && navLinks) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    navLinks.classList.toggle('mobile-open');
+                    mobileMenuToggle.classList.toggle('active');
+                });
+
+                // Close mobile menu when clicking on a link
+                const navLinkItems = navLinks.querySelectorAll('.nav-link');
+                navLinkItems.forEach(function(link) {
+                    link.addEventListener('click', function() {
+                        navLinks.classList.remove('mobile-open');
+                        mobileMenuToggle.classList.remove('active');
+                    });
+                });
+
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!mobileMenuToggle.contains(event.target) && !navLinks.contains(event.target)) {
+                        navLinks.classList.remove('mobile-open');
+                        mobileMenuToggle.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+    
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -166,6 +166,7 @@
     padding: 2rem;
     background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
     overflow: hidden;
+    margin-top: -1px; /* Remove gap between header and page background */
 }
 
 .auth-background {
@@ -278,7 +279,8 @@
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 420px;
+    max-width: 480px; /* Increased from 420px for better desktop experience */
+    margin: 0 auto;
 }
 
 .auth-card {
@@ -765,8 +767,14 @@
         padding: 1rem;
     }
     
+    .auth-container {
+        width: 95%; /* 95% of viewport width on mobile */
+        max-width: none;
+    }
+    
     .auth-card {
         padding: 2rem 1.5rem;
+        width: 100%;
     }
     
     .auth-title {
@@ -795,9 +803,15 @@
 }
 
 @media (max-width: 480px) {
+    .auth-container {
+        width: 92%; /* Slightly smaller on very small screens */
+        max-width: none;
+    }
+    
     .auth-card {
         padding: 1.5rem 1rem;
         border-radius: 1.5rem;
+        width: 100%;
     }
     
     .auth-title {
