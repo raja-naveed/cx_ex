@@ -917,8 +917,10 @@ document.getElementById('cancel-modal').addEventListener('click', function(e) {
 .orders-table {
     width: 100%;
     min-width: 800px;
+    max-width: 800px;
     border-collapse: collapse;
     table-layout: fixed;
+    margin: 0 auto;
 }
 
 .orders-table th {
@@ -929,6 +931,17 @@ document.getElementById('cancel-modal').addEventListener('click', function(e) {
     text-align: left;
     border-bottom: 1px solid rgba(55, 65, 81, 0.3);
     font-size: 0.875rem;
+    vertical-align: middle;
+}
+
+/* Header alignment to match data cells */
+.orders-table th.col-quantity,
+.orders-table th.col-price {
+    text-align: right;
+}
+
+.orders-table th.col-actions {
+    text-align: center;
 }
 
 .orders-table td {
@@ -941,45 +954,45 @@ document.getElementById('cancel-modal').addEventListener('click', function(e) {
 
 /* Column Width Definitions */
 .col-order-id {
-    width: 100px;
-    min-width: 100px;
-}
-
-.col-stock {
-    width: 150px;
-    min-width: 150px;
-}
-
-.col-side {
     width: 80px;
     min-width: 80px;
 }
 
-.col-quantity {
-    width: 100px;
-    min-width: 100px;
-    text-align: right;
-}
-
-.col-price {
-    width: 120px;
-    min-width: 120px;
-    text-align: right;
-}
-
-.col-status {
-    width: 120px;
-    min-width: 120px;
-}
-
-.col-created {
+.col-stock {
     width: 140px;
     min-width: 140px;
 }
 
+.col-side {
+    width: 70px;
+    min-width: 70px;
+}
+
+.col-quantity {
+    width: 90px;
+    min-width: 90px;
+    text-align: right;
+}
+
+.col-price {
+    width: 110px;
+    min-width: 110px;
+    text-align: right;
+}
+
+.col-status {
+    width: 110px;
+    min-width: 110px;
+}
+
+.col-created {
+    width: 130px;
+    min-width: 130px;
+}
+
 .col-actions {
-    width: 100px;
-    min-width: 100px;
+    width: 90px;
+    min-width: 90px;
     text-align: center;
 }
 

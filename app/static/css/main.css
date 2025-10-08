@@ -207,6 +207,11 @@ body {
   font-size: 14px;
 }
 
+/* Mobile Menu Toggle - Hidden on desktop by default */
+.mobile-menu-toggle {
+  display: none;
+}
+
 .nav-primary {
   background-color: var(--color-emerald-500);
   color: var(--color-black);
